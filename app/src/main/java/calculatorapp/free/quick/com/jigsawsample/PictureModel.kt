@@ -5,9 +5,9 @@ import android.graphics.Bitmap
 /**
  * 创建时间： 2019/4/2
  * 作者：yanyinan
- * 功能描述：代表一张图片的模型。x，y为图片相对边框中点的偏移
+ * 功能描述：代表一张图片的模型。xToHollowCenter，y为图片相对边框中点的偏移
  */
-data class PictureModel(val bitmapPicture:Bitmap,val hollowModel: HollowModel,var x:Int = 0,var y:Int = 0) {
+data class PictureModel(val bitmapPicture:Bitmap, val hollowModel: HollowModel, var xToHollowCenter:Int = 0, var yToHollowCenter:Int = 0) {
     val initScale:Float
     val scale:Float
 

@@ -1,5 +1,6 @@
 package calculatorapp.free.quick.com.jigsawsample
 
+import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.*
 import android.util.Log
@@ -58,7 +59,6 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                 Log.d("JigsawView", "scale:$scale")
                 val bitmap = it.bitmapPicture
 
-
                 val hollowModel = it.hollowModel
                 val hollowX = hollowModel.hollowX
                 val hollowY = hollowModel.hollowY
@@ -70,11 +70,11 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                     val rect = Rect(0, 0, hollowWidth, hollowHeight)
                     canvas.translate(hollowX.toFloat(), hollowY.toFloat())
 
-                    val pictureX = hollowWidth / 2 - bitmap.width / 2 + it.x
-                    val pictureY = hollowHeight / 2 - bitmap.height / 2 + it.y
+                    val pictureX = hollowWidth / 2 - bitmap.width / 2 + it.xToHollowCenter
+                    val pictureY = hollowHeight / 2 - bitmap.height / 2 + it.yToHollowCenter
 
                     mMatrix.postTranslate(pictureX.toFloat(), pictureY.toFloat())
-                    mMatrix.postScale(scale, scale, (hollowWidth / 2 + it.x).toFloat(), (hollowHeight / 2 + it.y).toFloat())
+                    mMatrix.postScale(scale, scale, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
 
                     canvas.clipRect(rect)
                     canvas.drawBitmap(bitmap, mMatrix, null)
@@ -138,8 +138,8 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                         mTouchPictureModel?.let {
                             val dx = (event.x - mLastX).toInt()
                             val dy = (event.y - mLastY).toInt()
-                            it.x = it.x + dx
-                            it.y = it.y + dy
+                            it.xToHollowCenter = it.xToHollowCenter + dx
+                            it.yToHollowCenter = it.yToHollowCenter + dy
 
                             Log.d("JigsawView", "dx:$dx")
                             Log.d("JigsawView", "dy:$dy")
@@ -158,12 +158,98 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-
+                //空白部分动画归位
+                makePictureCropHollowByTranslate(mTouchPictureModel)
             }
 
         }
 
         return true
+    }
+
+    /**
+     * 移动图片到刚好填充边框区域
+     */
+    private fun makePictureCropHollowByTranslate(pictureModel: PictureModel?) {
+        pictureModel?.let {
+            val hollowModel = it.hollowModel
+            val bitmap = it.bitmapPicture
+            val scale = it.scale
+            val hollowX = hollowModel.hollowX
+            val hollowY = hollowModel.hollowY
+            val hollowWidth = hollowModel.width
+            val hollowHeight = hollowModel.height
+
+            val pictureLeft = (hollowX + pictureModel.xToHollowCenter + hollowWidth / 2 - bitmap.width / 2 * scale)
+            val pictureTop = (hollowY + pictureModel.yToHollowCenter + hollowHeight / 2 - bitmap.height / 2 * scale)
+            val pictureRight = (hollowX + pictureModel.xToHollowCenter + hollowWidth / 2 + bitmap.width / 2 * scale)
+            val pictureBottom = (hollowY + pictureModel.yToHollowCenter + hollowHeight / 2 + bitmap.height / 2 * scale)
+
+            val leftDiffer = pictureLeft - hollowX
+            val topDiffer = pictureTop - hollowY
+            val rightDiffer = pictureRight - (hollowX + hollowWidth)
+            val bottomDiffer = pictureBottom - (hollowY + hollowHeight)
+
+            Log.d("JigsawView", "leftDiffer:$leftDiffer")
+            Log.d("topDiffer", "topDiffer:$topDiffer")
+            Log.d("rightDiffer", "rightDiffer:$rightDiffer")
+            Log.d("JigsawView", "bottomDiffer:$bottomDiffer")
+
+            if (leftDiffer > 0) {
+                val targetXToHollow = (pictureModel.xToHollowCenter - leftDiffer).toInt()
+
+                startCropHollowAnimation("PictureXToHollowCenter",pictureModel.xToHollowCenter, targetXToHollow)
+
+                Log.d("JigsawView", "targetXToHollow:$targetXToHollow")
+            }
+
+            if (topDiffer > 0) {
+                val targetYToHollow = (pictureModel.yToHollowCenter - topDiffer).toInt()
+                
+                startCropHollowAnimation("PictureYToHollowCenter", pictureModel.yToHollowCenter, targetYToHollow)
+
+                Log.d("JigsawView", "targetYToHollow:$targetYToHollow")
+            }
+
+            if (rightDiffer < 0) {
+                val targetXToHollow = (pictureModel.xToHollowCenter - rightDiffer).toInt()
+
+                startCropHollowAnimation("PictureXToHollowCenter", pictureModel.xToHollowCenter, targetXToHollow)
+
+                Log.d("JigsawView", "targetXToHollow:$targetXToHollow")
+            }
+
+            if (bottomDiffer < 0) {
+                val targetYToHollow = (pictureModel.yToHollowCenter - bottomDiffer).toInt()
+
+                startCropHollowAnimation("PictureYToHollowCenter", pictureModel.yToHollowCenter, targetYToHollow)
+
+                Log.d("JigsawView", "targetYToHollow: $targetYToHollow")
+            }
+        }
+
+        //  invalidate()
+
+    }
+
+    private fun startCropHollowAnimation(propertyName:String,picDistanceToHollow:Int,targetValue:Int){
+        val animator = ObjectAnimator.ofInt(this, propertyName, picDistanceToHollow, targetValue)
+        animator.duration = 100
+        animator.start()
+    }
+
+    fun setPictureXToHollowCenter(x: Int) {
+        mTouchPictureModel?.xToHollowCenter = x
+        invalidate()
+
+        Log.d("JigsawView", "setPictureXToHollowCenter: $x")
+    }
+
+    fun setPictureYToHollowCenter(y: Int) {
+        mTouchPictureModel?.yToHollowCenter = y
+        invalidate()
+
+        Log.d("JigsawView", "setPictureYToHollowCenter: $y")
     }
 
     /**

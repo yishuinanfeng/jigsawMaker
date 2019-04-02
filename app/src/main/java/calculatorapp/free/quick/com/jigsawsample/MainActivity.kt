@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity() {
         val jigsawModelList = mutableListOf<PictureModel>()
 
         val hollowModel1 = HollowModel(100, 100, 400, 500)
-        val hollowModel2 = HollowModel(400, 500, 300, 200)
+        val hollowModel2 = HollowModel(400, 700, 500, 500)
 
         val bitmap1 = BitmapFactory.decodeResource(resources, R.drawable.aa)
         val bitmap2 = BitmapFactory.decodeResource(resources, R.drawable.aa)
