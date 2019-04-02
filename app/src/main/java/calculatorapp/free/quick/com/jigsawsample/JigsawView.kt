@@ -32,6 +32,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
 
     private var backgroundBitmap: Bitmap? = null
+    private var doubleTouchMode:Boolean = false
 
     init {
         mHollowPaint.let {
@@ -70,6 +71,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                     val rect = Rect(0, 0, hollowWidth, hollowHeight)
                     canvas.translate(hollowX.toFloat(), hollowY.toFloat())
 
+                    //图片的中点位置以边框区域中点为标准。由此算出缩放前图片平移后左上角坐标
                     val pictureX = hollowWidth / 2 - bitmap.width / 2 + it.xToHollowCenter
                     val pictureY = hollowHeight / 2 - bitmap.height / 2 + it.yToHollowCenter
 
@@ -114,7 +116,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        when (event?.action) {
+        when (event?.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 mLastX = event.x
                 mLastY = event.y
@@ -126,15 +128,38 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                 Log.d("JigsawView", "mLastY:$mLastY")
 
                 mTouchPictureModel = getHandlePicModel(event)
+
+                Log.d("JigsawView", "ACTION_DOWN pointerCount:${event.pointerCount}")
+
             }
 
             MotionEvent.ACTION_POINTER_DOWN -> {
+                //双指模式
+                if (event.pointerCount == 2) {
+                    doubleTouchMode = true
+                    mTouchPictureModel = getHandlePicModel(event)
 
+                    if (mTouchPictureModel != null) {
+                        // mPicModelTouch.setSelect(true);
+                        //   resetNoTouchPicsState();
+
+                        //        mPicModelTouch.setSelect(true);
+
+                        mLastFingerDistance = distanceBetweenFingers(event)
+
+                        Log.d("JigsawView", "ACTION_POINTER_DOWN mLastFingerDistance:$mLastFingerDistance")
+
+                    }
+                }
             }
 
             MotionEvent.ACTION_MOVE -> {
                 when (event.pointerCount) {
                     1 -> {
+                        if (doubleTouchMode){
+                            return true
+                        }
+
                         mTouchPictureModel?.let {
                             val dx = (event.x - mLastX).toInt()
                             val dy = (event.y - mLastY).toInt()
@@ -152,12 +177,34 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                     }
 
                     2 -> {
+                        mTouchPictureModel?.let {
+                            val fingerDistance = distanceBetweenFingers(event)
+                            //当前手指距离和上一次的手指距离的比即为图片缩放比
+                            val scaleRatioDelta = fingerDistance.toFloat() / mLastFingerDistance.toFloat()
 
+                            Log.d("JigsawView", "scaleRatioDelta:$scaleRatioDelta")
+
+                            val tempScale = scaleRatioDelta * it.scale
+
+                            //对缩放比做限制
+                            if (Math.abs(tempScale) < 3  || Math.abs(tempScale) > 0.5) {
+                                it.scale = tempScale
+
+                                invalidate()
+                                mLastFingerDistance = fingerDistance
+
+                                Log.d("JigsawView", "mLastFingerDistance:$mLastFingerDistance")
+                            }
+
+                        }
                     }
                 }
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                if (doubleTouchMode){
+                    doubleTouchMode = false
+                }
                 //空白部分动画归位
                 makePictureCropHollowByTranslate(mTouchPictureModel)
             }
@@ -198,14 +245,14 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
             if (leftDiffer > 0) {
                 val targetXToHollow = (pictureModel.xToHollowCenter - leftDiffer).toInt()
 
-                startCropHollowAnimation("PictureXToHollowCenter",pictureModel.xToHollowCenter, targetXToHollow)
+                startCropHollowAnimation("PictureXToHollowCenter", pictureModel.xToHollowCenter, targetXToHollow)
 
                 Log.d("JigsawView", "targetXToHollow:$targetXToHollow")
             }
 
             if (topDiffer > 0) {
                 val targetYToHollow = (pictureModel.yToHollowCenter - topDiffer).toInt()
-                
+
                 startCropHollowAnimation("PictureYToHollowCenter", pictureModel.yToHollowCenter, targetYToHollow)
 
                 Log.d("JigsawView", "targetYToHollow:$targetYToHollow")
@@ -232,12 +279,15 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
     }
 
-    private fun startCropHollowAnimation(propertyName:String,picDistanceToHollow:Int,targetValue:Int){
+    private fun startCropHollowAnimation(propertyName: String, picDistanceToHollow: Int, targetValue: Int) {
         val animator = ObjectAnimator.ofInt(this, propertyName, picDistanceToHollow, targetValue)
         animator.duration = 100
         animator.start()
     }
 
+    /**
+     * 为图片归位动画调用所用，不可混淆！
+     */
     fun setPictureXToHollowCenter(x: Int) {
         mTouchPictureModel?.xToHollowCenter = x
         invalidate()
@@ -245,6 +295,9 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
         Log.d("JigsawView", "setPictureXToHollowCenter: $x")
     }
 
+    /**
+     * 为图片归位动画调用所用，不可混淆！
+     */
     fun setPictureYToHollowCenter(y: Int) {
         mTouchPictureModel?.yToHollowCenter = y
         invalidate()
@@ -320,6 +373,18 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
         matrix.setScale(scale, scale)
         return scale
+    }
+
+    /**
+     * 计算两个手指之间的距离。
+     *
+     * @param event
+     * @return 两个手指之间的距离
+     */
+    private fun distanceBetweenFingers(event: MotionEvent): Double {
+        val disX = Math.abs(event.getX(0) - event.getX(1))
+        val disY = Math.abs(event.getY(0) - event.getY(1))
+        return Math.sqrt((disX * disX + disY * disY).toDouble())
     }
 
 }

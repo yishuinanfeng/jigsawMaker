@@ -9,7 +9,7 @@ import android.graphics.Bitmap
  */
 data class PictureModel(val bitmapPicture:Bitmap, val hollowModel: HollowModel, var xToHollowCenter:Int = 0, var yToHollowCenter:Int = 0) {
     val initScale:Float
-    val scale:Float
+    var scale:Float
 
     init {
         val hollowWidth = hollowModel.width
