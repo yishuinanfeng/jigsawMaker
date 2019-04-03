@@ -310,9 +310,10 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                     if (mTouchHollowModel == null) {
                         makePictureCropHollowByAnimationIfNeed(mTouchPictureModel)
                     }
-//                    mTouchHollowModel?.let {
-//                        postDelayed({ backToCenterCropStateIfNeed() }, PICTURE_ANIMATION_DELAY + 10)
-//                    }
+                    
+                    mTouchHollowModel?.let {
+                        postDelayed({ backToCenterCropStateIfNeed() }, PICTURE_ANIMATION_DELAY + 10)
+                    }
                 }
 
                 if (doubleTouchMode) {
