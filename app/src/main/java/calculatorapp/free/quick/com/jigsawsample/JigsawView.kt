@@ -32,7 +32,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
 
     private var backgroundBitmap: Bitmap? = null
-    private var doubleTouchMode:Boolean = false
+    private var doubleTouchMode: Boolean = false
 
     init {
         mHollowPaint.let {
@@ -93,7 +93,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
     }
 
-    fun drawHollow(canvas: Canvas, hollowX: Int, hollowY: Int, rect: Rect) {
+    private fun drawHollow(canvas: Canvas, hollowX: Int, hollowY: Int, rect: Rect) {
 
         canvas.drawRect(rect, mHollowPaint)
     }
@@ -156,7 +156,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
             MotionEvent.ACTION_MOVE -> {
                 when (event.pointerCount) {
                     1 -> {
-                        if (doubleTouchMode){
+                        if (doubleTouchMode) {
                             return true
                         }
 
@@ -187,7 +187,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                             val tempScale = scaleRatioDelta * it.scale
 
                             //对缩放比做限制
-                            if (Math.abs(tempScale) < 3  || Math.abs(tempScale) > 0.5) {
+                            if (Math.abs(tempScale) < 3 || Math.abs(tempScale) > 0.5) {
                                 it.scale = tempScale
 
                                 invalidate()
@@ -202,11 +202,44 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                if (doubleTouchMode){
+                //空白部分动画归位
+                if (doubleTouchMode) {
+                    mTouchPictureModel?.let {
+                        val hollowModel = it.hollowModel
+                        val bitmap = it.bitmapPicture
+                        val scale = it.scale
+                        val hollowX = hollowModel.hollowX
+                        val hollowY = hollowModel.hollowY
+                        val hollowWidth = hollowModel.width
+                        val hollowHeight = hollowModel.height
+
+                        val pictureLeft = (hollowX + it.xToHollowCenter + hollowWidth / 2 - bitmap.width / 2 * scale)
+                        val pictureTop = (hollowY + it.yToHollowCenter + hollowHeight / 2 - bitmap.height / 2 * scale)
+                        val pictureRight = (hollowX + it.xToHollowCenter + hollowWidth / 2 + bitmap.width / 2 * scale)
+                        val pictureBottom = (hollowY + it.yToHollowCenter + hollowHeight / 2 + bitmap.height / 2 * scale)
+
+                        val leftDiffer = pictureLeft - hollowX
+                        val topDiffer = pictureTop - hollowY
+                        val rightDiffer = pictureRight - (hollowX + hollowWidth)
+                        val bottomDiffer = pictureBottom - (hollowY + hollowHeight)
+
+                        if (leftDiffer > 0 || topDiffer > 0 || rightDiffer < 0 || bottomDiffer < 0) {
+                            val targetScale = getCenterPicScale(bitmap,hollowWidth,hollowHeight)
+                            startAnimation("PictureScale",it.scale,targetScale)
+                            startAnimation("PictureXToHollowCenter",it.xToHollowCenter,0)
+                            startAnimation("PictureYToHollowCenter",it.yToHollowCenter,0)
+                        }
+                    }
+
+                } else {
+                    makePictureCropHollowByTranslate(mTouchPictureModel)
+                }
+
+                if (doubleTouchMode) {
                     doubleTouchMode = false
                 }
-                //空白部分动画归位
-                makePictureCropHollowByTranslate(mTouchPictureModel)
+
+              //  mTouchPictureModel = null
             }
 
         }
@@ -245,7 +278,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
             if (leftDiffer > 0) {
                 val targetXToHollow = (pictureModel.xToHollowCenter - leftDiffer).toInt()
 
-                startCropHollowAnimation("PictureXToHollowCenter", pictureModel.xToHollowCenter, targetXToHollow)
+                startAnimation("PictureXToHollowCenter", pictureModel.xToHollowCenter, targetXToHollow)
 
                 Log.d("JigsawView", "targetXToHollow:$targetXToHollow")
             }
@@ -253,7 +286,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
             if (topDiffer > 0) {
                 val targetYToHollow = (pictureModel.yToHollowCenter - topDiffer).toInt()
 
-                startCropHollowAnimation("PictureYToHollowCenter", pictureModel.yToHollowCenter, targetYToHollow)
+                startAnimation("PictureYToHollowCenter", pictureModel.yToHollowCenter, targetYToHollow)
 
                 Log.d("JigsawView", "targetYToHollow:$targetYToHollow")
             }
@@ -261,7 +294,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
             if (rightDiffer < 0) {
                 val targetXToHollow = (pictureModel.xToHollowCenter - rightDiffer).toInt()
 
-                startCropHollowAnimation("PictureXToHollowCenter", pictureModel.xToHollowCenter, targetXToHollow)
+                startAnimation("PictureXToHollowCenter", pictureModel.xToHollowCenter, targetXToHollow)
 
                 Log.d("JigsawView", "targetXToHollow:$targetXToHollow")
             }
@@ -269,7 +302,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
             if (bottomDiffer < 0) {
                 val targetYToHollow = (pictureModel.yToHollowCenter - bottomDiffer).toInt()
 
-                startCropHollowAnimation("PictureYToHollowCenter", pictureModel.yToHollowCenter, targetYToHollow)
+                startAnimation("PictureYToHollowCenter", pictureModel.yToHollowCenter, targetYToHollow)
 
                 Log.d("JigsawView", "targetYToHollow: $targetYToHollow")
             }
@@ -279,8 +312,14 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
     }
 
-    private fun startCropHollowAnimation(propertyName: String, picDistanceToHollow: Int, targetValue: Int) {
-        val animator = ObjectAnimator.ofInt(this, propertyName, picDistanceToHollow, targetValue)
+    private fun startAnimation(propertyName: String, initValue: Int, targetValue: Int) {
+        val animator = ObjectAnimator.ofInt(this, propertyName, initValue, targetValue)
+        animator.duration = 100
+        animator.start()
+    }
+
+    private fun startAnimation(propertyName: String, initValue: Float, targetValue: Float) {
+        val animator = ObjectAnimator.ofFloat(this, propertyName, initValue, targetValue)
         animator.duration = 100
         animator.start()
     }
@@ -300,6 +339,13 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
      */
     fun setPictureYToHollowCenter(y: Int) {
         mTouchPictureModel?.yToHollowCenter = y
+        invalidate()
+
+        Log.d("JigsawView", "setPictureYToHollowCenter: $y")
+    }
+
+    fun setPictureScale(scale: Float) {
+        mTouchPictureModel?.scale = scale
         invalidate()
 
         Log.d("JigsawView", "setPictureYToHollowCenter: $y")
