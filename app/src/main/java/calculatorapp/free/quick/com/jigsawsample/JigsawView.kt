@@ -15,6 +15,13 @@ import android.view.ViewConfiguration
  */
 class JigsawView(context: Context, private var mPictureModelList: List<PictureModel>) : View(context) {
 
+    companion object {
+        private const val HOLLOW_TOUCH_WIDTH = 100
+        private const val HOLLOW_SCALE_UPPER_LIMIT = 1.5
+        private const val HOLLOW_TOUCH_LOWER_LIMIT = 0.5
+        private const val PICTURE_ANIMATION_DELAY = 100L
+    }
+
     //绘制图片的画笔
     private val mPicturePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     //边框画笔
@@ -37,7 +44,6 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
     private var doubleTouchMode: Boolean = false
 
     private val viewConfig: ViewConfiguration
-    private val hollowTouchWidth = 100
 
     init {
         mHollowPaint.let {
@@ -178,29 +184,56 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                         mTouchHollowModel?.let {
                             when (it.selectSide) {
                                 HollowModel.LEFT -> {
+                                    val width = it.width - dx
+                                    if (width > it.initWidth * HOLLOW_SCALE_UPPER_LIMIT || width < it.initWidth * 0.5) {
+                                        //超出范围就不作处理
+                                        mLastX = event.x
+                                        mLastY = event.y
+                                        return true
+                                    }
                                     val lastWidth = it.width
+                                    it.width = width
                                     it.hollowX = it.hollowX + dx
-                                    it.width = it.width - dx
-
                                     mTouchPictureModel?.setScaleWithCondition(mTouchPictureModel!!.scale * (it.width.toFloat() / lastWidth.toFloat()))
                                 }
 
                                 HollowModel.RIGHT -> {
+                                    val width = it.width + dx
+                                    if (width > it.initWidth * HOLLOW_SCALE_UPPER_LIMIT || width < it.initWidth * HOLLOW_TOUCH_LOWER_LIMIT) {
+                                        //超出范围就不作处理
+                                        mLastX = event.x
+                                        mLastY = event.y
+                                        return true
+                                    }
                                     val lastWidth = it.width
                                     it.width = it.width + dx
                                     mTouchPictureModel?.setScaleWithCondition(mTouchPictureModel!!.scale * (it.width.toFloat() / lastWidth.toFloat()))
                                 }
 
                                 HollowModel.TOP -> {
+                                    val height = it.height - dy
+                                    if (height > it.initWidth * HOLLOW_SCALE_UPPER_LIMIT || height < it.initWidth * HOLLOW_TOUCH_LOWER_LIMIT) {
+                                        //超出范围就不作处理
+                                        mLastX = event.x
+                                        mLastY = event.y
+                                        return true
+                                    }
                                     val lastHeight = it.height
+                                    it.height = height
                                     it.hollowY = it.hollowY + dy
-                                    it.height = it.height - dy
                                     mTouchPictureModel?.setScaleWithCondition(mTouchPictureModel!!.scale * (it.height.toFloat() / lastHeight.toFloat()))
                                 }
 
                                 HollowModel.BOTTOM -> {
+                                    val height = it.height + dy
+                                    if (height > it.initWidth * HOLLOW_SCALE_UPPER_LIMIT || height < it.initWidth * HOLLOW_TOUCH_LOWER_LIMIT) {
+                                        //超出范围就不作处理
+                                        mLastX = event.x
+                                        mLastY = event.y
+                                        return true
+                                    }
                                     val lastHeight = it.height
-                                    it.height = lastHeight + dy
+                                    it.height = height
 
                                     mTouchPictureModel?.setScaleWithCondition(mTouchPictureModel!!.scale * (it.height.toFloat() / lastHeight.toFloat()))
 
@@ -273,6 +306,9 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                     backToCenterCropStateIfNeed()
                 } else {
                     makePictureCropHollowByTranslateIfNeed(mTouchPictureModel)
+                    mTouchHollowModel?.let {
+                        postDelayed({ backToCenterCropStateIfNeed() }, PICTURE_ANIMATION_DELAY + 10)
+                    }
                 }
 
                 if (doubleTouchMode) {
@@ -382,13 +418,13 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
     private fun startAnimation(propertyName: String, initValue: Int, targetValue: Int) {
         val animator = ObjectAnimator.ofInt(this, propertyName, initValue, targetValue)
-        animator.duration = 100
+        animator.duration = PICTURE_ANIMATION_DELAY
         animator.start()
     }
 
     private fun startAnimation(propertyName: String, initValue: Float, targetValue: Float) {
         val animator = ObjectAnimator.ofFloat(this, propertyName, initValue, targetValue)
-        animator.duration = 100
+        animator.duration = PICTURE_ANIMATION_DELAY
         animator.start()
     }
 
@@ -429,10 +465,10 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
             val hollowWidth = picModel.hollowModel.width
             val hollowHeight = picModel.hollowModel.height
 
-            val rectLeft = Rect(hollowX, hollowY, hollowX + hollowTouchWidth, hollowY + hollowHeight)
-            val rectTop = Rect(hollowX, hollowY, hollowX + hollowWidth, hollowY + hollowTouchWidth)
-            val rectRight = Rect(hollowX + hollowWidth- hollowTouchWidth, hollowY , hollowX + hollowWidth , hollowY + hollowHeight )
-            val rectBottom = Rect(hollowX, hollowY + hollowHeight - hollowTouchWidth, hollowX + hollowWidth, hollowY + hollowHeight)
+            val rectLeft = Rect(hollowX, hollowY, hollowX + HOLLOW_TOUCH_WIDTH, hollowY + hollowHeight)
+            val rectTop = Rect(hollowX, hollowY, hollowX + hollowWidth, hollowY + HOLLOW_TOUCH_WIDTH)
+            val rectRight = Rect(hollowX + hollowWidth - HOLLOW_TOUCH_WIDTH, hollowY, hollowX + hollowWidth, hollowY + hollowHeight)
+            val rectBottom = Rect(hollowX, hollowY + hollowHeight - HOLLOW_TOUCH_WIDTH, hollowX + hollowWidth, hollowY + hollowHeight)
 
             //点在矩形区域中
             if (rectLeft.contains(x, y)) {

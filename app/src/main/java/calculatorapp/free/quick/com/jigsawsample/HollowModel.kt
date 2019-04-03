@@ -8,7 +8,10 @@ import android.support.annotation.IntDef
  * 作者：yanyinan
  * 功能描述：
  */
-data class HollowModel(var hollowX: Int,var hollowY: Int,var width: Int,var height: Int,val path:Path? = null) {
+data class HollowModel(var hollowX: Int,var hollowY: Int,var initWidth: Int,var initHeight: Int,val path:Path? = null) {
+    var width:Int = initWidth
+    var height:Int = initHeight
+
     companion object {
         val NO_SIDE = 0
         val LEFT = 1
