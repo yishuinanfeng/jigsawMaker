@@ -242,6 +242,8 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                                 }
                             }
 
+                            makePictureCropHollowWithoutAnimationIfNeed()
+
                             mLastX = event.x
                             mLastY = event.y
                             invalidate()
@@ -305,10 +307,12 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                 if (doubleTouchMode) {
                     backToCenterCropStateIfNeed()
                 } else {
-                    makePictureCropHollowByTranslateIfNeed(mTouchPictureModel)
-                    mTouchHollowModel?.let {
-                        postDelayed({ backToCenterCropStateIfNeed() }, PICTURE_ANIMATION_DELAY + 10)
+                    if (mTouchHollowModel == null) {
+                        makePictureCropHollowByAnimationIfNeed(mTouchPictureModel)
                     }
+//                    mTouchHollowModel?.let {
+//                        postDelayed({ backToCenterCropStateIfNeed() }, PICTURE_ANIMATION_DELAY + 10)
+//                    }
                 }
 
                 if (doubleTouchMode) {
@@ -320,6 +324,61 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
         }
 
         return true
+    }
+
+    /**
+     * 让图片填充边框，不使用动画
+     */
+    private fun makePictureCropHollowWithoutAnimationIfNeed() {
+        mTouchPictureModel?.let {
+            val hollowModel = it.hollowModel
+            val bitmap = it.bitmapPicture
+            val scale = it.scale
+            val hollowX = hollowModel.hollowX
+            val hollowY = hollowModel.hollowY
+            val hollowWidth = hollowModel.width
+            val hollowHeight = hollowModel.height
+
+            val pictureLeft = (hollowX + it.xToHollowCenter + hollowWidth / 2 - bitmap.width / 2 * scale)
+            val pictureTop = (hollowY + it.yToHollowCenter + hollowHeight / 2 - bitmap.height / 2 * scale)
+            val pictureRight = (hollowX + it.xToHollowCenter + hollowWidth / 2 + bitmap.width / 2 * scale)
+            val pictureBottom = (hollowY + it.yToHollowCenter + hollowHeight / 2 + bitmap.height / 2 * scale)
+
+            val leftDiffer = pictureLeft - hollowX
+            val topDiffer = pictureTop - hollowY
+            val rightDiffer = pictureRight - (hollowX + hollowWidth)
+            val bottomDiffer = pictureBottom - (hollowY + hollowHeight)
+
+            if (leftDiffer > 0) {
+                val targetXToHollow = (it.xToHollowCenter - leftDiffer).toInt()
+
+                it.xToHollowCenter = targetXToHollow
+
+                Log.d("JigsawView", "targetXToHollow:$targetXToHollow")
+            }
+            //图片上边进入边框内
+            if (topDiffer > 0) {
+                val targetYToHollow = (it.yToHollowCenter - topDiffer).toInt()
+                it.yToHollowCenter = targetYToHollow
+
+                Log.d("JigsawView", "targetYToHollow:$targetYToHollow")
+            }
+            //图片右边进入边框内
+            if (rightDiffer < 0) {
+                val targetXToHollow = (it.xToHollowCenter - rightDiffer).toInt()
+                it.xToHollowCenter = targetXToHollow
+
+                Log.d("JigsawView", "targetXToHollow:$targetXToHollow")
+            }
+            //图片低边进入边框内
+            if (bottomDiffer < 0) {
+                val targetYToHollow = (it.yToHollowCenter - bottomDiffer).toInt()
+
+                it.yToHollowCenter = targetYToHollow
+
+                Log.d("JigsawView", "targetYToHollow: $targetYToHollow")
+            }
+        }
     }
 
     private fun backToCenterCropStateIfNeed() {
@@ -354,7 +413,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
     /**
      * 移动图片到刚好填充边框区域
      */
-    private fun makePictureCropHollowByTranslateIfNeed(pictureModel: PictureModel?) {
+    private fun makePictureCropHollowByAnimationIfNeed(pictureModel: PictureModel?) {
         pictureModel?.let {
             val hollowModel = it.hollowModel
             val bitmap = it.bitmapPicture
