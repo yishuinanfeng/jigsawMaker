@@ -7,15 +7,25 @@ import android.graphics.Bitmap
  * 作者：yanyinan
  * 功能描述：代表一张图片的模型。xToHollowCenter，y为图片相对边框中点的偏移
  */
-data class PictureModel(val bitmapPicture:Bitmap, val hollowModel: HollowModel, var xToHollowCenter:Int = 0, var yToHollowCenter:Int = 0) {
-    val initScale:Float
-    var scale:Float
+data class PictureModel(val bitmapPicture: Bitmap, val hollowModel: HollowModel, var xToHollowCenter: Int = 0, var yToHollowCenter: Int = 0) {
+    val initScale: Float
+    var scale: Float
+
+    var isSelected: Boolean = false
 
     init {
         val hollowWidth = hollowModel.width
         val hollowHeight = hollowModel.height
-        initScale = getCenterPicScale(bitmapPicture,hollowWidth,hollowHeight)
+        initScale = getCenterPicScale(bitmapPicture, hollowWidth, hollowHeight)
         scale = initScale
+    }
+
+    fun setScaleWithCondition(value: Float) {
+        if (value < initScale) {
+            scale = initScale
+            return
+        }
+        scale = value
     }
 
 
