@@ -11,15 +11,16 @@ import android.view.ViewConfiguration
 /**
  * 创建时间： 2019/4/2
  * 作者：yanyinan
- * 功能描述：
+ * 功能描述：一个多拼图可拖拽缩放、边框的View。
+ * 注意：1.暂时不支持在xml文件中定义 2.布局不支持wrap content
  */
 class JigsawView(context: Context, private var mPictureModelList: List<PictureModel>) : View(context) {
 
     companion object {
-        private const val HOLLOW_TOUCH_WIDTH = 100
         private const val HOLLOW_SCALE_UPPER_LIMIT = 1.5
         private const val HOLLOW_TOUCH_LOWER_LIMIT = 0.5
         private const val PICTURE_ANIMATION_DELAY = 100L
+
     }
 
     //绘制图片的画笔
@@ -27,7 +28,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
     //边框画笔
     private val mHollowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val mHollowSelectPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-
+    //图片变换使用一个Matrix对象的多次创建
     private val mMatrix = Matrix()
 
     private var mLastX: Float = 0.toFloat()
@@ -38,7 +39,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
     private var mLastFingerDistance: Double = 0.toDouble()
     private var mTouchPictureModel: PictureModel? = null
-    private var mTouchHollowModel: HollowModel? = null
+    //private var mTouchHollowModel: HollowModel? = null
 
     private var backgroundBitmap: Bitmap? = null
     private var doubleTouchMode: Boolean = false
@@ -128,9 +129,12 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                 it.restore()
                 mMatrix.reset()
             }
-
         }
+    }
 
+    var refreshLastEventLinsnter: (MotionEvent) -> Unit = { event ->
+        mLastX = event.x
+        mLastY = event.y
     }
 
 
@@ -146,8 +150,12 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                 Log.d("JigsawView", "mLastX:$mLastX")
                 Log.d("JigsawView", "mLastY:$mLastY")
 
-                mTouchPictureModel = getHandlePicModel(event)
-                mTouchHollowModel = getHandleHollowModel(event, mTouchPictureModel)
+                mTouchPictureModel = getTouchPicModel(event)
+
+                // mTouchHollowModel = getTouchHollowModel(event, mTouchPictureModel)
+                mTouchPictureModel?.let {
+                    it.refreshIsTouchHollowState(event)
+                }
 
                 Log.d("JigsawView", "ACTION_DOWN pointerCount:${event.pointerCount}")
 
@@ -157,8 +165,8 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                 //双指模式
                 if (event.pointerCount == 2) {
                     doubleTouchMode = true
-                    mTouchPictureModel = getHandlePicModel(event)
-                    mTouchHollowModel = null
+                    mTouchPictureModel = getTouchPicModel(event)
+                    //mTouchHollowModel = null
 
                     if (mTouchPictureModel != null) {
                         mLastFingerDistance = distanceBetweenFingers(event)
@@ -181,74 +189,16 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
                         Log.d("JigsawView", "HollowModel dy:$dy")
 
-                        mTouchHollowModel?.let {
-                            when (it.selectSide) {
-                                HollowModel.LEFT -> {
-                                    val width = it.width - dx
-                                    if (width > it.initWidth * HOLLOW_SCALE_UPPER_LIMIT || width < it.initWidth * 0.5) {
-                                        //超出范围就不作处理
-                                        mLastX = event.x
-                                        mLastY = event.y
-                                        return true
-                                    }
-                                    val lastWidth = it.width
-                                    it.width = width
-                                    it.hollowX = it.hollowX + dx
-                                    mTouchPictureModel?.setScaleWithCondition(mTouchPictureModel!!.scale * (it.width.toFloat() / lastWidth.toFloat()))
+                        mTouchPictureModel?.let { pictureModel ->
+                            if (pictureModel.isTouchHollow) {
+                                if (pictureModel.handleHollowDrag(event, dx, dy, refreshLastEventLinsnter)) {
+                                    invalidate()
+
                                 }
 
-                                HollowModel.RIGHT -> {
-                                    val width = it.width + dx
-                                    if (width > it.initWidth * HOLLOW_SCALE_UPPER_LIMIT || width < it.initWidth * HOLLOW_TOUCH_LOWER_LIMIT) {
-                                        //超出范围就不作处理
-                                        mLastX = event.x
-                                        mLastY = event.y
-                                        return true
-                                    }
-                                    val lastWidth = it.width
-                                    it.width = it.width + dx
-                                    mTouchPictureModel?.setScaleWithCondition(mTouchPictureModel!!.scale * (it.width.toFloat() / lastWidth.toFloat()))
-                                }
-
-                                HollowModel.TOP -> {
-                                    val height = it.height - dy
-                                    if (height > it.initWidth * HOLLOW_SCALE_UPPER_LIMIT || height < it.initWidth * HOLLOW_TOUCH_LOWER_LIMIT) {
-                                        //超出范围就不作处理
-                                        mLastX = event.x
-                                        mLastY = event.y
-                                        return true
-                                    }
-                                    val lastHeight = it.height
-                                    it.height = height
-                                    it.hollowY = it.hollowY + dy
-                                    mTouchPictureModel?.setScaleWithCondition(mTouchPictureModel!!.scale * (it.height.toFloat() / lastHeight.toFloat()))
-                                }
-
-                                HollowModel.BOTTOM -> {
-                                    val height = it.height + dy
-                                    if (height > it.initWidth * HOLLOW_SCALE_UPPER_LIMIT || height < it.initWidth * HOLLOW_TOUCH_LOWER_LIMIT) {
-                                        //超出范围就不作处理
-                                        mLastX = event.x
-                                        mLastY = event.y
-                                        return true
-                                    }
-                                    val lastHeight = it.height
-                                    it.height = height
-
-                                    mTouchPictureModel?.setScaleWithCondition(mTouchPictureModel!!.scale * (it.height.toFloat() / lastHeight.toFloat()))
-
-                                    Log.d("JigsawView", "HollowModel.height:${it.height}")
-                                    Log.d("JigsawView", "HollowModel dy:$dy")
-                                }
+                                //对边框处理过就不需要对图片进行处理了
+                                return true
                             }
-
-                            makePictureCropHollowWithoutAnimationIfNeed()
-
-                            mLastX = event.x
-                            mLastY = event.y
-                            invalidate()
-                            //对边框处理过就不需要对图片进行处理了
-                            return true
                         }
 
                         mTouchPictureModel?.let {
@@ -292,43 +242,52 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                mTouchHollowModel?.selectSide = HollowModel.NO_SIDE
                 val distanceFromDownPoint = getDisFromDownPoint(event)
                 if (distanceFromDownPoint < viewConfig.scaledTouchSlop) {
                     //选中状态
-                    mPictureModelList.forEach {
-                        it.isSelected = false
-                    }
-                    mTouchPictureModel?.isSelected = true
+                    selectPictureModel()
                     invalidate()
                     return true
                 }
-                //空白部分动画归位
+
                 if (doubleTouchMode) {
+                    //缩放图片导致的边框内空白部分动画放大图片填充
                     backToCenterCropStateIfNeed()
                 } else {
-                    if (mTouchHollowModel == null) {
-                        makePictureCropHollowByAnimationIfNeed(mTouchPictureModel)
+                    mTouchPictureModel?.let {
+                        if (!it.isTouchHollow) {
+                            //不是拖动边框，而是拖动图片则动画填充
+                            makePictureCropHollowByAnimationIfNeed(mTouchPictureModel)
+                        } else {
+                            //拖动边框如果此时有空白则centercrop填充
+                            postDelayed({ backToCenterCropStateIfNeed() }, PICTURE_ANIMATION_DELAY + 10)
+                        }
                     }
-                    
-                    mTouchHollowModel?.let {
-                        postDelayed({ backToCenterCropStateIfNeed() }, PICTURE_ANIMATION_DELAY + 10)
-                    }
+
+
                 }
+
+                mTouchPictureModel?.cancelHollowTouch()
 
                 if (doubleTouchMode) {
                     doubleTouchMode = false
                 }
-
             }
-
         }
 
         return true
     }
 
+    private fun selectPictureModel() {
+        mPictureModelList.forEach {
+            it.isSelected = false
+        }
+        mTouchPictureModel?.isSelected = true
+    }
+
     /**
-     * 让图片填充边框，不使用动画
+     * 移动图片到刚好填充边框区域，不使用动画
+     * todo 写入Model
      */
     private fun makePictureCropHollowWithoutAnimationIfNeed() {
         mTouchPictureModel?.let {
@@ -412,7 +371,8 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
     }
 
     /**
-     * 移动图片到刚好填充边框区域
+     * 使用动画移动图片到刚好填充边框区域
+     * todo 写入Model
      */
     private fun makePictureCropHollowByAnimationIfNeed(pictureModel: PictureModel?) {
         pictureModel?.let {
@@ -476,12 +436,18 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
     }
 
+    /**
+     * todo 写入Model
+     */
     private fun startAnimation(propertyName: String, initValue: Int, targetValue: Int) {
         val animator = ObjectAnimator.ofInt(this, propertyName, initValue, targetValue)
         animator.duration = PICTURE_ANIMATION_DELAY
         animator.start()
     }
 
+    /**
+     * todo 写入Model
+     */
     private fun startAnimation(propertyName: String, initValue: Float, targetValue: Float) {
         val animator = ObjectAnimator.ofFloat(this, propertyName, initValue, targetValue)
         animator.duration = PICTURE_ANIMATION_DELAY
@@ -490,6 +456,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
     /**
      * 为图片归位动画调用所用，不可混淆！
+     * todo 写入Model
      */
     fun setPictureXToHollowCenter(x: Int) {
         mTouchPictureModel?.xToHollowCenter = x
@@ -500,6 +467,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
     /**
      * 为图片归位动画调用所用，不可混淆！
+     * todo 写入Model
      */
     fun setPictureYToHollowCenter(y: Int) {
         mTouchPictureModel?.yToHollowCenter = y
@@ -508,6 +476,10 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
         Log.d("JigsawView", "setPictureYToHollowCenter: $y")
     }
 
+    /**
+     * 为图片归位动画调用所用，不可混淆！
+     * todo 写入Model
+     */
     fun setPictureScale(scale: Float) {
         mTouchPictureModel?.scale = scale
         invalidate()
@@ -515,51 +487,54 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
         Log.d("JigsawView", "setPictureYToHollowCenter: $y")
     }
 
-    public fun getHandleHollowModel(event: MotionEvent, picModel: PictureModel?): HollowModel? {
-        if (picModel != null) {
-            val x = event.x.toInt()
-            val y = event.y.toInt()
-
-            val hollowX = picModel.hollowModel.hollowX
-            val hollowY = picModel.hollowModel.hollowY
-            val hollowWidth = picModel.hollowModel.width
-            val hollowHeight = picModel.hollowModel.height
-
-            val rectLeft = Rect(hollowX, hollowY, hollowX + HOLLOW_TOUCH_WIDTH, hollowY + hollowHeight)
-            val rectTop = Rect(hollowX, hollowY, hollowX + hollowWidth, hollowY + HOLLOW_TOUCH_WIDTH)
-            val rectRight = Rect(hollowX + hollowWidth - HOLLOW_TOUCH_WIDTH, hollowY, hollowX + hollowWidth, hollowY + hollowHeight)
-            val rectBottom = Rect(hollowX, hollowY + hollowHeight - HOLLOW_TOUCH_WIDTH, hollowX + hollowWidth, hollowY + hollowHeight)
-
-            //点在矩形区域中
-            if (rectLeft.contains(x, y)) {
-                picModel.hollowModel.selectSide = HollowModel.LEFT
-                return picModel.hollowModel
-            }
-            if (rectTop.contains(x, y)) {
-                picModel.hollowModel.selectSide = HollowModel.TOP
-                return picModel.hollowModel
-            }
-            if (rectRight.contains(x, y)) {
-                picModel.hollowModel.selectSide = HollowModel.RIGHT
-                return picModel.hollowModel
-            }
-            if (rectBottom.contains(x, y)) {
-                picModel.hollowModel.selectSide = HollowModel.BOTTOM
-                return picModel.hollowModel
-            }
-        } else {
-            return null
-        }
-        return null
-    }
+//    /**
+//     *  todo 写在Model中
+//     */
+//    private fun getTouchHollowModel(event: MotionEvent, picModel: PictureModel?): HollowModel? {
+//        if (picModel != null) {
+//            val x = event.x.toInt()
+//            val y = event.y.toInt()
+//
+//            val hollowX = picModel.hollowModel.hollowX
+//            val hollowY = picModel.hollowModel.hollowY
+//            val hollowWidth = picModel.hollowModel.width
+//            val hollowHeight = picModel.hollowModel.height
+//
+//            val rectLeft = Rect(hollowX, hollowY, hollowX + HOLLOW_TOUCH_WIDTH, hollowY + hollowHeight)
+//            val rectTop = Rect(hollowX, hollowY, hollowX + hollowWidth, hollowY + HOLLOW_TOUCH_WIDTH)
+//            val rectRight = Rect(hollowX + hollowWidth - HOLLOW_TOUCH_WIDTH, hollowY, hollowX + hollowWidth, hollowY + hollowHeight)
+//            val rectBottom = Rect(hollowX, hollowY + hollowHeight - HOLLOW_TOUCH_WIDTH, hollowX + hollowWidth, hollowY + hollowHeight)
+//
+//            //点在矩形区域中
+//            if (rectLeft.contains(x, y)) {
+//                picModel.hollowModel.selectSide = HollowModel.LEFT
+//                return picModel.hollowModel
+//            }
+//            if (rectTop.contains(x, y)) {
+//                picModel.hollowModel.selectSide = HollowModel.TOP
+//                return picModel.hollowModel
+//            }
+//            if (rectRight.contains(x, y)) {
+//                picModel.hollowModel.selectSide = HollowModel.RIGHT
+//                return picModel.hollowModel
+//            }
+//            if (rectBottom.contains(x, y)) {
+//                picModel.hollowModel.selectSide = HollowModel.BOTTOM
+//                return picModel.hollowModel
+//            }
+//        } else {
+//            return null
+//        }
+//        return null
+//    }
 
     /**
-     * 根据事件点击区域得到对应的PictureModel，如果没有点击到图片所在区域则返回null
+     * 根据事件点击区域得到被点击到的PictureModel，如果没有点击图片则返回null
      *
      * @param event
      * @return
      */
-    private fun getHandlePicModel(event: MotionEvent): PictureModel? {
+    private fun getTouchPicModel(event: MotionEvent): PictureModel? {
         when (event.pointerCount) {
             1 -> {
                 val x = event.x.toInt()
@@ -612,7 +587,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
     private fun getCenterPicScale(bitmap: Bitmap, width: Int, height: Int): Float {
         val widthBmp = bitmap.width
         val heightBmp = bitmap.height
-        var scale: Float
+        val scale: Float
         scale = if (widthBmp < heightBmp) {
             width / widthBmp.toFloat()
         } else {

@@ -13,11 +13,14 @@ data class HollowModel(var hollowX: Int,var hollowY: Int,var initWidth: Int,var 
     var height:Int = initHeight
 
     companion object {
-        val NO_SIDE = 0
-        val LEFT = 1
-        val TOP = 2
-        val RIGHT = 3
-        val BOTTOM = 4
+        /**
+         * 表示对应的边（没有、上、左、下、右）
+         */
+        const val NO_SIDE = 0
+        const val LEFT = 1
+        const val TOP = 2
+        const val RIGHT = 3
+        const val BOTTOM = 4
     }
 
     var selectSide:Int = NO_SIDE
