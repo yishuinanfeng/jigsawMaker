@@ -158,7 +158,7 @@ data class PictureModel(val bitmapPicture: Bitmap, val hollowModel: HollowModel,
 
                 HollowModel.TOP -> {
                     val height = model.height - dy
-                    if (height > model.initWidth * HOLLOW_SCALE_UPPER_LIMIT || height < model.initWidth * HOLLOW_TOUCH_LOWER_LIMIT) {
+                    if (height > model.initHeight * HOLLOW_SCALE_UPPER_LIMIT || height < model.initHeight * HOLLOW_TOUCH_LOWER_LIMIT) {
                         //超出范围就不作处理
 
                         //使用回调函数
@@ -175,7 +175,7 @@ data class PictureModel(val bitmapPicture: Bitmap, val hollowModel: HollowModel,
 
                 HollowModel.BOTTOM -> {
                     val height = model.height + dy
-                    if (height > model.initWidth * HOLLOW_SCALE_UPPER_LIMIT || height < model.initWidth * HOLLOW_TOUCH_LOWER_LIMIT) {
+                    if (height > model.initHeight * HOLLOW_SCALE_UPPER_LIMIT || height < model.initHeight * HOLLOW_TOUCH_LOWER_LIMIT) {
                         //超出范围就不作处理
 
                         //使用回调函数
