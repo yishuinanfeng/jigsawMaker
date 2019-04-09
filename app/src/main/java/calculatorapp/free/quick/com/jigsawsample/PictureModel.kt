@@ -11,7 +11,7 @@ import android.view.View
 /**
  * 创建时间： 2019/4/2
  * 作者：yanyinan
- * 功能描述：代表一张图片的模型。xToHollowCenter，y为图片相对边框中点的偏移
+ * 功能描述：代表一张图片的模型。xToHollowCenter，yToHollowCenter为图片相对边框中点的偏移
  */
 data class PictureModel(val bitmapPicture: Bitmap, val hollowModel: HollowModel, var xToHollowCenter: Int = 0, var yToHollowCenter: Int = 0) {
 
@@ -122,12 +122,12 @@ data class PictureModel(val bitmapPicture: Bitmap, val hollowModel: HollowModel,
      * 处理边框拖动事件
      * return：边框有没有有效移动
      */
-    fun handleHollowDrag(event: MotionEvent, dx: Int, dy: Int, needEffectothers: Boolean, overRangeListener: (MotionEvent) -> Unit): Boolean {
+    fun handleHollowDrag(event: MotionEvent, dx: Int, dy: Int, needEffectOthers: Boolean, overRangeListener: (MotionEvent) -> Unit): Boolean {
         hollowModel.let { model ->
             when (model.selectSide) {
                 HollowModel.LEFT -> {
                     val width = model.width - dx
-                    if (width > model.initWidth * HOLLOW_SCALE_UPPER_LIMIT || width < model.initWidth * 0.5) {
+                    if (width > model.initWidth * HOLLOW_SCALE_UPPER_LIMIT || width < model.initWidth * HOLLOW_TOUCH_LOWER_LIMIT) {
                         //超出范围就不作处理
 
                         //使用回调函数
@@ -140,7 +140,7 @@ data class PictureModel(val bitmapPicture: Bitmap, val hollowModel: HollowModel,
                     setScaleWithCondition(scale * (model.width.toFloat() / lastWidth.toFloat()))
 
                     //联动其他的PictureModel
-                    if (needEffectothers) {
+                    if (needEffectOthers) {
                         handleEffectPictureModel(HollowModel.LEFT, event, dx, dy, overRangeListener)
                     }
                 }
@@ -159,7 +159,7 @@ data class PictureModel(val bitmapPicture: Bitmap, val hollowModel: HollowModel,
                     setScaleWithCondition(scale * (model.width.toFloat() / lastWidth.toFloat()))
 
                     //联动其他的PictureModel
-                    if (needEffectothers) {
+                    if (needEffectOthers) {
                         handleEffectPictureModel(HollowModel.RIGHT, event, dx, dy, overRangeListener)
                     }
                 }
@@ -178,7 +178,7 @@ data class PictureModel(val bitmapPicture: Bitmap, val hollowModel: HollowModel,
                     model.hollowY = model.hollowY + dy
                     setScaleWithCondition(scale * (model.height.toFloat() / lastHeight.toFloat()))
 
-                    if (needEffectothers) {
+                    if (needEffectOthers) {
                         handleEffectPictureModel(HollowModel.TOP, event, dx, dy, overRangeListener)
                     }
                 }
@@ -197,7 +197,7 @@ data class PictureModel(val bitmapPicture: Bitmap, val hollowModel: HollowModel,
 
                     setScaleWithCondition(scale * (model.height.toFloat() / lastHeight.toFloat()))
 
-                    if (needEffectothers) {
+                    if (needEffectOthers) {
                         handleEffectPictureModel(HollowModel.BOTTOM, event, dx, dy, overRangeListener)
                     }
 

@@ -1,6 +1,5 @@
 package calculatorapp.free.quick.com.jigsawsample
 
-import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.*
 import android.util.Log
@@ -30,7 +29,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
     }
 
     //绘制图片的画笔
-    private val mPicturePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val mPictureHalfAlphaPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     //边框画笔
     private val mHollowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val mHollowSelectPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -53,15 +52,16 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
     private val viewConfig: ViewConfiguration
 
     init {
-        mHollowPaint.let {
-            mHollowPaint.color = Color.RED
-            mHollowPaint.strokeWidth = 2f
-            mHollowPaint.style = Paint.Style.STROKE
+        mHollowPaint.color = Color.RED
+        mHollowPaint.strokeWidth = 2f
+        mHollowPaint.style = Paint.Style.STROKE
 
-            mHollowSelectPaint.color = Color.RED
-            mHollowSelectPaint.strokeWidth = 10f
-            mHollowSelectPaint.style = Paint.Style.STROKE
-        }
+        mHollowSelectPaint.color = Color.RED
+        mHollowSelectPaint.strokeWidth = 10f
+        mHollowSelectPaint.style = Paint.Style.STROKE
+
+        mPictureHalfAlphaPaint.alpha = 80
+
         viewConfig = ViewConfiguration.get(context)
     }
 
@@ -94,23 +94,30 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                     val rect = Rect(0, 0, hollowWidth, hollowHeight)
                     canvas.translate(hollowX.toFloat(), hollowY.toFloat())
 
-                    //图片的中点位置以边框区域中点为标准。由此算出缩放前图片平移后左上角坐标
+                    //图片的中点位置以边框区域中点为标准。根据图片大小以及图片中心点边框区域中点的偏移距离和算出缩放前图片平移后左上角坐标
                     val pictureX = hollowWidth / 2 - bitmap.width / 2 + it.xToHollowCenter
                     val pictureY = hollowHeight / 2 - bitmap.height / 2 + it.yToHollowCenter
 
                     mMatrix.postTranslate(pictureX.toFloat(), pictureY.toFloat())
                     mMatrix.postScale(scale, scale, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
 
+                    canvas.save()
                     canvas.clipRect(rect)
                     canvas.drawBitmap(bitmap, mMatrix, null)
-
+                    canvas.restore()
                     drawHollow(canvas, hollowX, hollowY, rect, it.isSelected)
+
+                    if (it.isSelected) {
+                        canvas.drawBitmap(bitmap, mMatrix, mPictureHalfAlphaPaint)
+                    }
+                    canvas.restore()
+
                 } else {
 
                 }
 
                 mMatrix.reset()
-                canvas.restore()
+
             }
         }
 
@@ -138,7 +145,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
         }
     }
 
-    var refreshLastEventLinsnter: (MotionEvent) -> Unit = { event ->
+    private var refreshLastEventListener: (MotionEvent) -> Unit = { event ->
         mLastX = event.x
         mLastY = event.y
     }
@@ -162,6 +169,9 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                 mTouchPictureModel?.let {
                     it.refreshIsTouchHollowState(event)
                 }
+
+                selectPictureModel()
+                invalidate()
 
                 Log.d("JigsawView", "ACTION_DOWN pointerCount:${event.pointerCount}")
 
@@ -197,7 +207,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
                         mTouchPictureModel?.let { pictureModel ->
                             if (pictureModel.isTouchHollow) {
-                                if (pictureModel.handleHollowDrag(event, dx, dy, true,refreshLastEventLinsnter)) {
+                                if (pictureModel.handleHollowDrag(event, dx, dy, true, refreshLastEventListener)) {
                                     invalidate()
 
                                 }
@@ -219,7 +229,6 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
                         mLastX = event.x
                         mLastY = event.y
-
                     }
 
                     2 -> {
@@ -248,13 +257,13 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                val distanceFromDownPoint = getDisFromDownPoint(event)
-                if (distanceFromDownPoint < viewConfig.scaledTouchSlop) {
-                    //选中状态
-                    selectPictureModel()
-                    invalidate()
-                    return true
-                }
+//                val distanceFromDownPoint = getDisFromDownPoint(event)
+//                if (distanceFromDownPoint < viewConfig.scaledTouchSlop) {
+//                    //选中状态
+//                    selectPictureModel()
+//                    invalidate()
+//                    return true
+//                }
 
                 if (doubleTouchMode) {
                     //缩放图片导致的边框内空白部分动画放大图片填充
