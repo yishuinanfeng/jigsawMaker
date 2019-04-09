@@ -17,7 +17,7 @@ class MainActivity : AppCompatActivity() {
         flContainer.addView(jigsawView)
     }
 
-    fun initPictureList(): MutableList<PictureModel> {
+    private fun initPictureList(): MutableList<PictureModel> {
         val jigsawModelList = mutableListOf<PictureModel>()
 
         val hollowModel1 = HollowModel(0, 0, 400, 500)
@@ -57,6 +57,16 @@ class MainActivity : AppCompatActivity() {
         modelArray.put(HollowModel.TOP,list1)
         pictureModel2.addEffectPictureModel(modelArray,HollowModel.TOP)
 
+        val list2 = mutableListOf<PictureModel>()
+        list2.add(pictureModel3)
+        list2.add(pictureModel4)
+        val modelArray1 = SparseArray<List<PictureModel>>()
+        modelArray1.put(HollowModel.LEFT,list2)
+
+        val list3 = mutableListOf<PictureModel>()
+        list3.add(pictureModel1)
+        modelArray1.put(HollowModel.RIGHT,list3)
+        pictureModel2.addEffectPictureModel(modelArray1,HollowModel.RIGHT)
 
         return jigsawModelList
     }
