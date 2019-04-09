@@ -197,7 +197,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
                         mTouchPictureModel?.let { pictureModel ->
                             if (pictureModel.isTouchHollow) {
-                                if (pictureModel.handleHollowDrag(event, dx, dy, refreshLastEventLinsnter)) {
+                                if (pictureModel.handleHollowDrag(event, dx, dy, true,refreshLastEventLinsnter)) {
                                     invalidate()
 
                                 }

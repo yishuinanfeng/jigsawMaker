@@ -42,32 +42,94 @@ class MainActivity : AppCompatActivity() {
         jigsawModelList.add(pictureModel4)
         jigsawModelList.add(pictureModel5)
         jigsawModelList.add(pictureModel6)
-        val list = mutableListOf<PictureModel>()
 
+
+        addEffectPicForModel1(pictureModel2, pictureModel4, pictureModel6, pictureModel3, pictureModel5, pictureModel1)
+        addEffectPicForModel2(pictureModel1, pictureModel3, pictureModel5, pictureModel4, pictureModel6, pictureModel2)
+        addEffectPicForModel3(pictureModel2, pictureModel4, pictureModel6, pictureModel1, pictureModel5, pictureModel3)
+
+
+        return jigsawModelList
+    }
+
+    private fun addEffectPicForModel3(pictureModel1: PictureModel, pictureModel2: PictureModel, pictureModel3: PictureModel, pictureModel4: PictureModel, pictureModel5: PictureModel, sourceModel: PictureModel) {
+        val list = mutableListOf<PictureModel>()
+        list.add(pictureModel1)
+        list.add(pictureModel2)
+        list.add(pictureModel3)
+        val list1 = mutableListOf<PictureModel>()
+        list1.add(pictureModel4)
+        list1.add(pictureModel5)
+        val modelArray = SparseArray<List<PictureModel>>()
+        modelArray.put(HollowModel.TOP, list)
+        modelArray.put(HollowModel.BOTTOM, list1)
+        sourceModel.addEffectPictureModel(modelArray, HollowModel.BOTTOM)
+        val list2 = mutableListOf<PictureModel>()
+        list2.add(pictureModel5)
+        list2.add(pictureModel3)
+        val modelArray1 = SparseArray<List<PictureModel>>()
+        modelArray1.put(HollowModel.LEFT, list2)
+        val list3 = mutableListOf<PictureModel>()
+        list3.add(pictureModel2)
+        modelArray1.put(HollowModel.RIGHT, list3)
+        sourceModel.addEffectPictureModel(modelArray1, HollowModel.RIGHT)
+
+        val list4 = mutableListOf<PictureModel>()
+        list4.add(pictureModel2)
+        val modelArray2 = SparseArray<List<PictureModel>>()
+        modelArray2.put(HollowModel.LEFT, list4)
+        val list5 = mutableListOf<PictureModel>()
+        list5.add(pictureModel1)
+        list5.add(pictureModel4)
+        modelArray2.put(HollowModel.RIGHT, list5)
+        sourceModel.addEffectPictureModel(modelArray2, HollowModel.LEFT)
+
+
+    }
+
+    private fun addEffectPicForModel1(pictureModel1: PictureModel, pictureModel2: PictureModel, pictureModel3: PictureModel, pictureModel4: PictureModel, pictureModel5: PictureModel, sourceModel: PictureModel) {
+        val list = mutableListOf<PictureModel>()
+        list.add(pictureModel1)
+        list.add(pictureModel2)
+        list.add(pictureModel3)
+        val list1 = mutableListOf<PictureModel>()
+        list1.add(pictureModel4)
+        list1.add(pictureModel5)
+        val modelArray = SparseArray<List<PictureModel>>()
+        modelArray.put(HollowModel.TOP, list)
+        modelArray.put(HollowModel.BOTTOM, list1)
+        sourceModel.addEffectPictureModel(modelArray, HollowModel.BOTTOM)
+        val list2 = mutableListOf<PictureModel>()
+        list2.add(pictureModel2)
+        list2.add(pictureModel4)
+        val modelArray1 = SparseArray<List<PictureModel>>()
+        modelArray1.put(HollowModel.LEFT, list2)
+        val list3 = mutableListOf<PictureModel>()
+        list3.add(pictureModel1)
+        modelArray1.put(HollowModel.RIGHT, list3)
+        sourceModel.addEffectPictureModel(modelArray1, HollowModel.RIGHT)
+    }
+
+    private fun addEffectPicForModel2(pictureModel1: PictureModel, pictureModel3: PictureModel, pictureModel5: PictureModel, pictureModel4: PictureModel, pictureModel6: PictureModel, sourceModel: PictureModel) {
+        val list = mutableListOf<PictureModel>()
         list.add(pictureModel1)
         list.add(pictureModel3)
         list.add(pictureModel5)
-
         val list1 = mutableListOf<PictureModel>()
         list1.add(pictureModel4)
         list1.add(pictureModel6)
-
         val modelArray = SparseArray<List<PictureModel>>()
-        modelArray.put(HollowModel.BOTTOM,list)
-        modelArray.put(HollowModel.TOP,list1)
-        pictureModel2.addEffectPictureModel(modelArray,HollowModel.TOP)
-
+        modelArray.put(HollowModel.BOTTOM, list)
+        modelArray.put(HollowModel.TOP, list1)
+        sourceModel.addEffectPictureModel(modelArray, HollowModel.TOP)
         val list2 = mutableListOf<PictureModel>()
         list2.add(pictureModel3)
         list2.add(pictureModel4)
         val modelArray1 = SparseArray<List<PictureModel>>()
-        modelArray1.put(HollowModel.LEFT,list2)
-
+        modelArray1.put(HollowModel.LEFT, list2)
         val list3 = mutableListOf<PictureModel>()
         list3.add(pictureModel1)
-        modelArray1.put(HollowModel.RIGHT,list3)
-        pictureModel2.addEffectPictureModel(modelArray1,HollowModel.RIGHT)
-
-        return jigsawModelList
+        modelArray1.put(HollowModel.RIGHT, list3)
+        sourceModel.addEffectPictureModel(modelArray1, HollowModel.RIGHT)
     }
 }
