@@ -77,12 +77,6 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
     private fun drawPicture(canvas: Canvas?) {
 
         canvas?.let { canvas ->
-
-            var matrixShadow: Matrix
-            var canvasShadow: Canvas
-            var modelShadow: PictureModel
-
-
             mPictureModelList.forEach {
                 canvas.save()
 
@@ -113,16 +107,18 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                     canvas.drawBitmap(bitmap, mMatrix, null)
                     drawHollow(canvas, hollowX, hollowY, rect, it.isSelected)
 
-                    if (it.isSelected && isNeedDrawShadow) {
-                        canvas.drawBitmap(bitmap, mMatrix, mPictureHalfAlphaPaint)
+                    if (it.isSelected){
+
+                        Log.d("JigsawView", "setPictureXToHollowCenter: ${it.xToHollowCenter}")
+                        Log.d("JigsawView", "setPictureYToHollowCenter: ${it.yToHollowCenter}")
                     }
-                    canvas.restore()
 
                 } else {
 
                 }
 
                 mMatrix.reset()
+                canvas.restore()
 
             }
 
@@ -135,7 +131,12 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
      * 绘制选中的图片的虚影
      */
     private fun drawPictureShadow(canvas: Canvas?) {
+
         mTouchPictureModel?.let {
+            if (!it.isSelected || !isNeedDrawShadow) {
+                return
+            }
+
             canvas?.save()
 
             val scale = it.scale
@@ -159,9 +160,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                 mMatrix.postTranslate(pictureX.toFloat(), pictureY.toFloat())
                 mMatrix.postScale(scale, scale, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
 
-                if (it.isSelected && isNeedDrawShadow) {
-                    canvas?.drawBitmap(bitmap, mMatrix, mPictureHalfAlphaPaint)
-                }
+                canvas?.drawBitmap(bitmap, mMatrix, mPictureHalfAlphaPaint)
                 canvas?.restore()
             }
         }
@@ -304,7 +303,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                 }
             }
 
-            MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
 //                val distanceFromDownPoint = getDisFromDownPoint(event)
 //                if (distanceFromDownPoint < viewConfig.scaledTouchSlop) {
 //                    //选中状态
@@ -314,9 +313,14 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 //                }
                 isNeedDrawShadow = false
 
+                Log.d("JigsawView", "MotionEvent: ${event.actionMasked}")
+
                 if (doubleTouchMode) {
                     //缩放图片导致的边框内空白部分动画放大图片填充
-                    mTouchPictureModel?.backToCenterCropStateIfNeed()
+                    mTouchPictureModel?.let {
+                        it.backToCenterCropState(it, false)
+                    }
+
                 } else {
                     mTouchPictureModel?.let {
                         if (!it.isTouchHollow) {
@@ -325,7 +329,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                         } else {
                             //拖动边框如果此时有空白则centercrop填充
                             postDelayed({
-                                it.backToCenterCropStateWithAllEffectPic(it)
+                                it.backToCenterCropState(it, true)
                             }, PICTURE_ANIMATION_DELAY + 10)
                         }
                     }

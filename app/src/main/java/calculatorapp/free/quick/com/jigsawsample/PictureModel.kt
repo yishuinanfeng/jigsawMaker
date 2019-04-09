@@ -320,10 +320,13 @@ data class PictureModel(val bitmapPicture: Bitmap, val hollowModel: HollowModel,
 
     }
 
-    fun backToCenterCropStateWithAllEffectPic(pictureModel: PictureModel) {
+    fun backToCenterCropState(pictureModel: PictureModel, needEffectOthers: Boolean) {
         pictureModel.let {
             backToCenterCrop(it)
 
+            if (!needEffectOthers){
+                return
+            }
             val centerCrop = { model: PictureModel ->
                 model.backToCenterCrop(model)
             }
@@ -360,7 +363,6 @@ data class PictureModel(val bitmapPicture: Bitmap, val hollowModel: HollowModel,
      *
      */
     fun translatePictureCropHollowByAnimationIfNeed() {
-
         val hollowModel = hollowModel
         val bitmap = bitmapPicture
         val scale = scale
@@ -469,7 +471,7 @@ data class PictureModel(val bitmapPicture: Bitmap, val hollowModel: HollowModel,
         xToHollowCenter = x
         belongView?.invalidate()
 
-        Log.d("JigsawView", "setPictureXToHollowCenter: $x")
+        Log.d("PictureModel", "setPictureXToHollowCenter: $x")
     }
 
     /**
@@ -480,7 +482,7 @@ data class PictureModel(val bitmapPicture: Bitmap, val hollowModel: HollowModel,
         yToHollowCenter = y
         belongView?.invalidate()
 
-        Log.d("JigsawView", "setPictureYToHollowCenter: $y")
+        Log.d("PictureModel", "setPictureYToHollowCenter: $y")
     }
 
     /**
@@ -491,7 +493,7 @@ data class PictureModel(val bitmapPicture: Bitmap, val hollowModel: HollowModel,
         this.scale = scale
         belongView?.invalidate()
 
-        Log.d("JigsawView", "setPictureYToHollowCenter: $scale")
+        Log.d("PictureModel", "setScale: $scale")
     }
 
 }
