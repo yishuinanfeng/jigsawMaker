@@ -246,21 +246,76 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
     private fun handleEffectPictureModel(currentDirection: Int, event: MotionEvent, dx: Int, dy: Int, overRangeListener: (MotionEvent) -> Unit): Boolean {
         val modelArray = mEffectPictureModel.get(currentDirection)
         modelArray?.let { array ->
-            val arraySize = array.size()
-            for (i in 0 until arraySize) {
-                val targetDirection = array.keyAt(i)
-                Log.d("JigsawView", "targetDirection:$targetDirection")
-
-                val modelList = array.get(targetDirection)
-                modelList?.forEach {
-                    it.hollowModel.selectSide = targetDirection
-                    //表示有一个联动的model已经到了最小值，不能再拖动边框(所以在添加联动model要注意，不同方向的边先添加，比如当前为左边，先添加联动到右边的model)
-                    if (!it.handleHollowDrag(event, dx, dy, false, overRangeListener)) {
+            when (currentDirection) {
+                HollowModel.LEFT -> {
+                    val canDrag = handleEffectPicForOneDirection(array, event, dx, dy, HollowModel.RIGHT, overRangeListener)
+                    if (!canDrag) {
                         return false
                     }
+                    handleEffectPicForOneDirection(array, event, dx, dy, HollowModel.LEFT, overRangeListener)
+
                 }
+
+                HollowModel.TOP -> {
+                    val canDrag = handleEffectPicForOneDirection(array, event, dx, dy, HollowModel.BOTTOM, overRangeListener)
+                    if (!canDrag) {
+                        return false
+                    }
+                    handleEffectPicForOneDirection(array, event, dx, dy, HollowModel.TOP, overRangeListener)
+                }
+
+                HollowModel.RIGHT -> {
+                    val canDrag = handleEffectPicForOneDirection(array, event, dx, dy, HollowModel.LEFT, overRangeListener)
+                    if (!canDrag) {
+                        return false
+                    }
+                    handleEffectPicForOneDirection(array, event, dx, dy, HollowModel.RIGHT, overRangeListener)
+                }
+
+                HollowModel.BOTTOM -> {
+                    val canDrag = handleEffectPicForOneDirection(array, event, dx, dy, HollowModel.TOP, overRangeListener)
+                    if (!canDrag) {
+                        return false
+                    }
+                    handleEffectPicForOneDirection(array, event, dx, dy, HollowModel.BOTTOM, overRangeListener)
+                }
+
+                else -> {
+
+                }
+
+            }
+
+
+//            val arraySize = array.size()
+//            for (i in 0 until arraySize) {
+//                val targetDirection = array.keyAt(i)
+//                Log.d("JigsawView", "targetDirection:$targetDirection")
+//
+//                val modelList = array.get(targetDirection)
+//                modelList?.forEach {
+//                    it.hollowModel.selectSide = targetDirection
+//                    //表示有一个联动的model已经到了最小值，不能再拖动边框(所以在添加联动model要注意，不同方向的边先添加，比如当前为左边，先添加联动到右边的model)
+//                    if (!it.handleHollowDrag(event, dx, dy, false, overRangeListener)) {
+//                        return false
+//                    }
+//                }
+//            }
+        }
+        return true
+    }
+
+    private fun handleEffectPicForOneDirection(array: SparseArray<List<PictureModel>>, event: MotionEvent, dx: Int, dy: Int,
+                                               direction: Int, overRangeListener: (MotionEvent) -> Unit): Boolean {
+        val modelList = array.get(direction)
+        modelList?.forEach {
+            it.hollowModel.selectSide = direction
+            //表示有一个联动的model已经到了最小值，不能再拖动边框(所以在添加联动model要注意，不同方向的边先添加，比如当前为左边，先添加联动到右边的model)
+            if (!it.handleHollowDrag(event, dx, dy, false, overRangeListener)) {
+                return false
             }
         }
+
         return true
     }
 
