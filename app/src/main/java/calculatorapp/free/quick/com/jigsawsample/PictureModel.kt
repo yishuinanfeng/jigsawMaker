@@ -75,17 +75,14 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
         scale = value
     }
 
-
     /**
      * 得到在固定的显示尺寸限定得Bitmap显示centerCrop效果的缩放比例(scale为图片和边框宽高比最大的值)
      */
     private fun getCenterPicScale(bitmap: Bitmap, width: Int, height: Int): Float {
         val widthBmp = bitmap.width
         val heightBmp = bitmap.height
-        val hollowWidth = hollowModel.width
-        val hollowHeight = hollowModel.height
-        val widthScale = hollowWidth.toFloat() / widthBmp.toFloat()
-        val heightScale = hollowHeight.toFloat() / heightBmp.toFloat()
+        val widthScale = width.toFloat() / widthBmp.toFloat()
+        val heightScale = height.toFloat() / heightBmp.toFloat()
         return if (widthScale < heightScale) {
             heightScale
         } else {
@@ -98,7 +95,6 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
      * 刷新是否触摸到边框状态（即边框可拖动）
      */
     fun refreshIsTouchHollowState(event: MotionEvent) {
-
         val x = event.x.toInt()
         val y = event.y.toInt()
 
