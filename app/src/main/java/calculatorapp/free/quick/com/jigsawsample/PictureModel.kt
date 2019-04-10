@@ -47,7 +47,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
         scale = initScale
     }
 
-    fun refreshStateWhenChangePic(){
+    fun refreshStateWhenChangePic() {
         val hollowWidth = hollowModel.width
         val hollowHeight = hollowModel.height
         initScale = getCenterPicScale(bitmapPicture, hollowWidth, hollowHeight)
@@ -136,79 +136,91 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
             when (model.selectSide) {
                 HollowModel.LEFT -> {
                     val width = model.width - dx
-                    if (width > model.initWidth * HOLLOW_SCALE_UPPER_LIMIT || width < model.initWidth * HOLLOW_TOUCH_LOWER_LIMIT) {
+                    if (width < 50) {
                         //超出范围就不作处理
 
                         //使用回调函数
                         overRangeListener.invoke(event)
                         return false
+                    }
+
+                    //联动其他的PictureModel
+                    if (needEffectOthers) {
+                        if (!handleEffectPictureModel(HollowModel.LEFT, event, dx, dy, overRangeListener)) {
+                            return false
+                        }
                     }
                     val lastWidth = model.width
                     model.width = width
                     model.hollowX = model.hollowX + dx
                     setScaleWithCondition(scale * (model.width.toFloat() / lastWidth.toFloat()))
 
-                    //联动其他的PictureModel
-                    if (needEffectOthers) {
-                        handleEffectPictureModel(HollowModel.LEFT, event, dx, dy, overRangeListener)
-                    }
                 }
 
                 HollowModel.RIGHT -> {
                     val width = model.width + dx
-                    if (width > model.initWidth * HOLLOW_SCALE_UPPER_LIMIT || width < model.initWidth * HOLLOW_TOUCH_LOWER_LIMIT) {
+                    if (width < 50) {
                         //超出范围就不作处理
 
                         //使用回调函数
                         overRangeListener.invoke(event)
                         return false
+                    }
+                    //联动其他的PictureModel
+                    if (needEffectOthers) {
+                        if (!handleEffectPictureModel(HollowModel.RIGHT, event, dx, dy, overRangeListener)) {
+                            return false
+                        }
                     }
                     val lastWidth = model.width
                     model.width = model.width + dx
                     setScaleWithCondition(scale * (model.width.toFloat() / lastWidth.toFloat()))
 
-                    //联动其他的PictureModel
-                    if (needEffectOthers) {
-                        handleEffectPictureModel(HollowModel.RIGHT, event, dx, dy, overRangeListener)
-                    }
                 }
 
                 HollowModel.TOP -> {
                     val height = model.height - dy
-                    if (height > model.initHeight * HOLLOW_SCALE_UPPER_LIMIT || height < model.initHeight * HOLLOW_TOUCH_LOWER_LIMIT) {
+                    if (height < 50) {
                         //超出范围就不作处理
 
                         //使用回调函数
                         overRangeListener.invoke(event)
                         return false
+                    }
+
+                    if (needEffectOthers) {
+                        if (!handleEffectPictureModel(HollowModel.TOP, event, dx, dy, overRangeListener)) {
+                            return false
+                        }
                     }
                     val lastHeight = model.height
                     model.height = height
                     model.hollowY = model.hollowY + dy
                     setScaleWithCondition(scale * (model.height.toFloat() / lastHeight.toFloat()))
 
-                    if (needEffectOthers) {
-                        handleEffectPictureModel(HollowModel.TOP, event, dx, dy, overRangeListener)
-                    }
+
                 }
 
                 HollowModel.BOTTOM -> {
                     val height = model.height + dy
-                    if (height > model.initHeight * HOLLOW_SCALE_UPPER_LIMIT || height < model.initHeight * HOLLOW_TOUCH_LOWER_LIMIT) {
+                    if (height < 50) {
                         //超出范围就不作处理
 
                         //使用回调函数
                         overRangeListener.invoke(event)
                         return false
                     }
+
+                    if (needEffectOthers) {
+                        if (!handleEffectPictureModel(HollowModel.BOTTOM, event, dx, dy, overRangeListener)) {
+                            return false
+                        }
+                    }
+
                     val lastHeight = model.height
                     model.height = height
 
                     setScaleWithCondition(scale * (model.height.toFloat() / lastHeight.toFloat()))
-
-                    if (needEffectOthers) {
-                        handleEffectPictureModel(HollowModel.BOTTOM, event, dx, dy, overRangeListener)
-                    }
 
                     Log.d("JigsawView", "HollowModel.height:${model.height}")
                     Log.d("JigsawView", "HollowModel dy:$dy")
@@ -226,7 +238,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
         return true
     }
 
-    private fun handleEffectPictureModel(currentDirection: Int, event: MotionEvent, dx: Int, dy: Int, overRangeListener: (MotionEvent) -> Unit) {
+    private fun handleEffectPictureModel(currentDirection: Int, event: MotionEvent, dx: Int, dy: Int, overRangeListener: (MotionEvent) -> Unit): Boolean {
         val modelArray = mEffectPictureModel.get(currentDirection)
         modelArray?.let { array ->
             val arraySize = array.size()
@@ -235,11 +247,14 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
                 val modelList = array.get(targetDirection)
                 modelList?.forEach {
                     it.hollowModel.selectSide = targetDirection
-                    it.handleHollowDrag(event, dx, dy, false,overRangeListener)
+                    //表示有一个联动的model已经到了最小值，不能再拖动边框(所以在添加联动model要注意，不同方向的边先添加，比如当前为左边，先添加联动到右边的model)
+                    if (!it.handleHollowDrag(event, dx, dy, false, overRangeListener) ) {
+                        return false
+                    }
                 }
             }
         }
-
+        return true
     }
 
     fun cancelHollowTouch(pictureModel: PictureModel) {
@@ -333,7 +348,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
         pictureModel.let {
             backToCenterCrop(it)
 
-            if (!needEffectOthers){
+            if (!needEffectOthers) {
                 return
             }
             val centerCrop = { model: PictureModel ->

@@ -325,7 +325,6 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
                                 Log.d("JigsawView", "mLastFingerDistance:$mLastFingerDistance")
                             }
-
                         }
                     }
                 }
@@ -335,7 +334,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                 handler.removeCallbacksAndMessages(null)
 
                 //交换图片
-                if (changePicMode && mTouchPictureModel != null && willChangeModel != null) {
+                if (changePicMode && mTouchPictureModel != null && willChangeModel != null && mTouchPictureModel != willChangeModel) {
                     val tempBitmap = mTouchPictureModel!!.bitmapPicture
                     mTouchPictureModel!!.bitmapPicture = willChangeModel!!.bitmapPicture
                     willChangeModel!!.bitmapPicture = tempBitmap
@@ -352,6 +351,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                     mTouchPictureModel = getTouchPicModel(event)
                     selectPictureModel()
                     invalidate()
+                    isNeedDrawShadow = false
                     return true
                 }
 
