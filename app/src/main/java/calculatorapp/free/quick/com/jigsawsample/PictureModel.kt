@@ -17,8 +17,8 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
 
     companion object {
         private const val HOLLOW_TOUCH_WIDTH = 100
-        private const val HOLLOW_SCALE_UPPER_LIMIT = 1.5
-        private const val HOLLOW_TOUCH_LOWER_LIMIT = 0.5
+        private const val HOLLOW_SCALE_UPPER_LIMIT = 3
+        private const val HOLLOW_TOUCH_LOWER_LIMIT = 100
         private const val PICTURE_ANIMATION_DELAY = 100L
     }
 
@@ -69,24 +69,29 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
             scale = initScale
             return
         }
+        if (value > HOLLOW_SCALE_UPPER_LIMIT * initScale) {
+            return
+        }
         scale = value
     }
 
 
     /**
-     * 得到在固定的显示尺寸限定得Bitmap显示centerCrop效果的缩放比例
+     * 得到在固定的显示尺寸限定得Bitmap显示centerCrop效果的缩放比例(scale为图片和边框宽高比最大的值)
      */
     private fun getCenterPicScale(bitmap: Bitmap, width: Int, height: Int): Float {
         val widthBmp = bitmap.width
         val heightBmp = bitmap.height
-        val scale: Float
-        scale = if (widthBmp < heightBmp) {
-            width / widthBmp.toFloat()
+        val hollowWidth = hollowModel.width
+        val hollowHeight = hollowModel.height
+        val widthScale = hollowWidth.toFloat() / widthBmp.toFloat()
+        val heightScale = hollowHeight.toFloat() / heightBmp.toFloat()
+        return if (widthScale < heightScale) {
+            heightScale
         } else {
-            height / heightBmp.toFloat()
+            widthScale
         }
 
-        return scale
     }
 
     /**
@@ -136,7 +141,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
             when (model.selectSide) {
                 HollowModel.LEFT -> {
                     val width = model.width - dx
-                    if (width < 50) {
+                    if (width < HOLLOW_TOUCH_LOWER_LIMIT) {
                         //超出范围就不作处理
 
                         //使用回调函数
@@ -147,6 +152,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
                     //联动其他的PictureModel
                     if (needEffectOthers) {
                         if (!handleEffectPictureModel(HollowModel.LEFT, event, dx, dy, overRangeListener)) {
+                            //表示有一个联动的model已经到了最小值，不能再拖动边框
                             return false
                         }
                     }
@@ -159,7 +165,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
 
                 HollowModel.RIGHT -> {
                     val width = model.width + dx
-                    if (width < 50) {
+                    if (width < HOLLOW_TOUCH_LOWER_LIMIT) {
                         //超出范围就不作处理
 
                         //使用回调函数
@@ -169,6 +175,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
                     //联动其他的PictureModel
                     if (needEffectOthers) {
                         if (!handleEffectPictureModel(HollowModel.RIGHT, event, dx, dy, overRangeListener)) {
+                            //表示有一个联动的model已经到了最小值，不能再拖动边框
                             return false
                         }
                     }
@@ -180,7 +187,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
 
                 HollowModel.TOP -> {
                     val height = model.height - dy
-                    if (height < 50) {
+                    if (height < HOLLOW_TOUCH_LOWER_LIMIT) {
                         //超出范围就不作处理
 
                         //使用回调函数
@@ -190,6 +197,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
 
                     if (needEffectOthers) {
                         if (!handleEffectPictureModel(HollowModel.TOP, event, dx, dy, overRangeListener)) {
+                            //表示有一个联动的model已经到了最小值，不能再拖动边框
                             return false
                         }
                     }
@@ -203,7 +211,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
 
                 HollowModel.BOTTOM -> {
                     val height = model.height + dy
-                    if (height < 50) {
+                    if (height < HOLLOW_TOUCH_LOWER_LIMIT) {
                         //超出范围就不作处理
 
                         //使用回调函数
@@ -213,6 +221,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
 
                     if (needEffectOthers) {
                         if (!handleEffectPictureModel(HollowModel.BOTTOM, event, dx, dy, overRangeListener)) {
+                            //表示有一个联动的model已经到了最小值，不能再拖动边框
                             return false
                         }
                     }
@@ -248,7 +257,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
                 modelList?.forEach {
                     it.hollowModel.selectSide = targetDirection
                     //表示有一个联动的model已经到了最小值，不能再拖动边框(所以在添加联动model要注意，不同方向的边先添加，比如当前为左边，先添加联动到右边的model)
-                    if (!it.handleHollowDrag(event, dx, dy, false, overRangeListener) ) {
+                    if (!it.handleHollowDrag(event, dx, dy, false, overRangeListener)) {
                         return false
                     }
                 }
