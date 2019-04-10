@@ -17,7 +17,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
 
     companion object {
         private const val HOLLOW_TOUCH_WIDTH = 100
-        private const val HOLLOW_SCALE_UPPER_LIMIT = 3
+        private const val HOLLOW_SCALE_UPPER_LIMIT = 2
         private const val HOLLOW_TOUCH_LOWER_LIMIT = 100
         private const val PICTURE_ANIMATION_DELAY = 100L
     }
@@ -249,6 +249,8 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
             val arraySize = array.size()
             for (i in 0 until arraySize) {
                 val targetDirection = array.keyAt(i)
+                Log.d("JigsawView", "targetDirection:$targetDirection")
+
                 val modelList = array.get(targetDirection)
                 modelList?.forEach {
                     it.hollowModel.selectSide = targetDirection
@@ -445,37 +447,6 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
             startAnimation("PictureYToHollowCenter", yToHollowCenter, targetYToHollow)
 
             Log.d("JigsawView", "targetYToHollow: $targetYToHollow")
-        }
-
-    }
-
-    /**
-     * 缩放状态下动画回到cnterCrop状态以填充空白
-     */
-    fun backToCenterCropStateIfNeed() {
-        val hollowModel = hollowModel
-        val bitmap = bitmapPicture
-        val scale = scale
-        val hollowX = hollowModel.hollowX
-        val hollowY = hollowModel.hollowY
-        val hollowWidth = hollowModel.width
-        val hollowHeight = hollowModel.height
-
-        val pictureLeft = (hollowX + xToHollowCenter + hollowWidth / 2 - bitmap.width / 2 * scale)
-        val pictureTop = (hollowY + yToHollowCenter + hollowHeight / 2 - bitmap.height / 2 * scale)
-        val pictureRight = (hollowX + xToHollowCenter + hollowWidth / 2 + bitmap.width / 2 * scale)
-        val pictureBottom = (hollowY + yToHollowCenter + hollowHeight / 2 + bitmap.height / 2 * scale)
-
-        val leftDiffer = pictureLeft - hollowX
-        val topDiffer = pictureTop - hollowY
-        val rightDiffer = pictureRight - (hollowX + hollowWidth)
-        val bottomDiffer = pictureBottom - (hollowY + hollowHeight)
-
-        if (leftDiffer > 0 || topDiffer > 0 || rightDiffer < 0 || bottomDiffer < 0) {
-            val targetScale = getCenterPicScale(bitmap, hollowWidth, hollowHeight)
-            startAnimation("PictureScale", scale, targetScale)
-            startAnimation("PictureXToHollowCenter", xToHollowCenter, 0)
-            startAnimation("PictureYToHollowCenter", yToHollowCenter, 0)
         }
 
     }

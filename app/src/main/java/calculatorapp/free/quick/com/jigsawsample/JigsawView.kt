@@ -18,8 +18,8 @@ import android.view.ViewConfiguration
 class JigsawView(context: Context, private var mPictureModelList: List<PictureModel>) : View(context) {
 
     companion object {
-        private const val HOLLOW_SCALE_UPPER_LIMIT = 1.5
-        private const val HOLLOW_TOUCH_LOWER_LIMIT = 0.5
+        private const val GAP_MAX = 10
+        private const val ROUND_RADIUS_MAX = 10
         private const val PICTURE_ANIMATION_DELAY = 100L
 
     }
@@ -67,9 +67,23 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
      */
     private var changePicMode = false
     private var willChangeModel: PictureModel? = null
+    /**
+     * 内边距
+     */
+    private var gap = 5.0f
+    /**
+     * 边框的圆角半径
+     */
+    private var hollowRoundRadius = 10.0f
 
-    class DelayHandler : Handler() {
+    fun setGap(gap: Float) {
+        this.gap = gap * GAP_MAX
+        invalidate()
+    }
 
+    fun setHollowRoundRadius(radius: Float) {
+        this.hollowRoundRadius = radius * ROUND_RADIUS_MAX
+        invalidate()
     }
 
     init {
@@ -88,6 +102,9 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
     override fun onDraw(canvas: Canvas?) {
         //因为不支持wrap content，所以不需要重写onMeasure
+        canvas?.drawColor(Color.YELLOW)
+
+
         drawBackground(canvas)
         drawPicture(canvas)
     }
@@ -117,7 +134,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                 val hollowPath = hollowModel.path
 
                 if (hollowPath == null) {
-                    val rect = Rect(0, 0, hollowWidth, hollowHeight)
+                    val rect = RectF(gap, gap, (hollowWidth - gap), (hollowHeight - gap))
                     canvas.translate(hollowX.toFloat(), hollowY.toFloat())
 
                     //图片的中点位置以边框区域中点为标准。根据图片大小以及图片中心点边框区域中点的偏移距离和算出缩放前图片平移后左上角坐标
@@ -127,14 +144,15 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                     mMatrix.postTranslate(pictureX.toFloat(), pictureY.toFloat())
                     mMatrix.postScale(scale, scale, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
 
-                    canvas.clipRect(rect)
+                    val clipPath = Path()
+                    clipPath.addRoundRect(rect, hollowRoundRadius, hollowRoundRadius, Path.Direction.CW)
+                    canvas.clipPath(clipPath)
                     if (changePicMode && !it.isSelected && it == willChangeModel) {
                         canvas.drawBitmap(bitmap, mMatrix, mPictureHalfAlphaPaint)
                     } else {
                         canvas.drawBitmap(bitmap, mMatrix, null)
                     }
                     drawHollow(canvas, hollowX, hollowY, rect, it.isSelected)
-
 
                 } else {
 
@@ -189,11 +207,11 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
         mMatrix.reset()
     }
 
-    private fun drawHollow(canvas: Canvas, hollowX: Int, hollowY: Int, rect: Rect, selected: Boolean) {
+    private fun drawHollow(canvas: Canvas, hollowX: Int, hollowY: Int, rect: RectF, selected: Boolean) {
         if (selected) {
-            canvas.drawRect(rect, mHollowSelectPaint)
+            canvas.drawRoundRect(rect,hollowRoundRadius,hollowRoundRadius, mHollowSelectPaint)
         } else {
-            canvas.drawRect(rect, mHollowPaint)
+            canvas.drawRoundRect(rect,hollowRoundRadius,hollowRoundRadius, mHollowPaint)
         }
     }
 
@@ -489,6 +507,10 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
         val disX = Math.abs(event.x - mDownX)
         val disY = Math.abs(event.y - mDownY)
         return Math.sqrt((disX * disX + disY * disY).toDouble())
+    }
+
+    class DelayHandler : Handler() {
+
     }
 
 }

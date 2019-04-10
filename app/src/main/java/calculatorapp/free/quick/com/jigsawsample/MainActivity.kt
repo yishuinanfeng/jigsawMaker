@@ -3,10 +3,16 @@ package calculatorapp.free.quick.com.jigsawsample
 import android.graphics.BitmapFactory
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.util.SparseArray
+import android.widget.SeekBar
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        private val TAG = MainActivity::class.java.simpleName
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -14,7 +20,39 @@ class MainActivity : AppCompatActivity() {
 
         val jigsawModelList = initPictureList()
         val jigsawView = JigsawView(this, jigsawModelList)
-        flContainer.addView(jigsawView)
+        flContainer.addView(jigsawView,0)
+
+        gap.setOnSeekBarChangeListener(object :SeekBar.OnSeekBarChangeListener{
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                Log.d(TAG,"progress: $progress")
+                jigsawView.setGap(progress.toFloat()/100)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+        })
+
+        round.setOnSeekBarChangeListener(object :SeekBar.OnSeekBarChangeListener{
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                Log.d(TAG,"progress: $progress")
+                jigsawView.setHollowRoundRadius(progress.toFloat()/100)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+        })
     }
 
     private fun initPictureList(): MutableList<PictureModel> {
