@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
         val hollowModel6 = HollowModel(800, 500, 400, 500)
 
         val bitmap1 = BitmapFactory.decodeResource(resources, R.drawable.aa)
-        val bitmap2 = BitmapFactory.decodeResource(resources, R.drawable.aa)
+        val bitmap2 = BitmapFactory.decodeResource(resources, R.drawable.bb)
 
         val pictureModel1 = PictureModel(bitmap1, hollowModel1)
         val pictureModel2 = PictureModel(bitmap2, hollowModel2)

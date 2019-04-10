@@ -13,7 +13,7 @@ import android.view.View
  * 作者：yanyinan
  * 功能描述：代表一张图片的模型。xToHollowCenter，yToHollowCenter为图片相对边框中点的偏移
  */
-data class PictureModel(val bitmapPicture: Bitmap, val hollowModel: HollowModel, var xToHollowCenter: Int = 0, var yToHollowCenter: Int = 0) {
+data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel, var xToHollowCenter: Int = 0, var yToHollowCenter: Int = 0) {
 
     companion object {
         private const val HOLLOW_TOUCH_WIDTH = 100
@@ -23,7 +23,7 @@ data class PictureModel(val bitmapPicture: Bitmap, val hollowModel: HollowModel,
     }
 
     var belongView: View? = null
-    private val initScale: Float
+    private var initScale: Float
     var scale: Float
     /**
      * 指定了当前PictureModel可移动的边框以及会被当前的PictureModel边框的拖动影响到的其他PictureModel
@@ -45,6 +45,15 @@ data class PictureModel(val bitmapPicture: Bitmap, val hollowModel: HollowModel,
         val hollowHeight = hollowModel.height
         initScale = getCenterPicScale(bitmapPicture, hollowWidth, hollowHeight)
         scale = initScale
+    }
+
+    fun refreshStateWhenChangePic(){
+        val hollowWidth = hollowModel.width
+        val hollowHeight = hollowModel.height
+        initScale = getCenterPicScale(bitmapPicture, hollowWidth, hollowHeight)
+        scale = initScale
+        xToHollowCenter = 0
+        yToHollowCenter = 0
     }
 
     /**

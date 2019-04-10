@@ -30,7 +30,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
         }
     }
 
-    //绘制图片的画笔
+    //绘制半透明（虚影）图片的画笔
     private val mPictureHalfAlphaPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     //边框画笔
     private val mHollowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -49,14 +49,24 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
     //private var mTouchHollowModel: HollowModel? = null
 
     private var backgroundBitmap: Bitmap? = null
+    /**
+     * 双指触摸模式
+     */
     private var doubleTouchMode: Boolean = false
 
     private val viewConfig: ViewConfiguration
     private var downTime: Long = 0
-
+    /**
+     * 需要绘制图片虚影
+     */
     private var isNeedDrawShadow = false
     private lateinit var runnable: Runnable
     private val handler = DelayHandler()
+    /**
+     * 交换图片模式
+     */
+    private var changePicMode = false
+    private var willChangeModel: PictureModel? = null
 
     class DelayHandler : Handler() {
 
@@ -86,6 +96,12 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
         canvas?.let { canvas ->
             mPictureModelList.forEach {
+
+                if (it.isSelected && changePicMode) {
+                    Log.d("JigsawView", "setPictureXToHollowCenter: ${it.xToHollowCenter}")
+                    Log.d("JigsawView", "setPictureYToHollowCenter: ${it.yToHollowCenter}")
+                    return@forEach
+                }
                 canvas.save()
 
                 val scale = it.scale
@@ -112,14 +128,13 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                     mMatrix.postScale(scale, scale, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
 
                     canvas.clipRect(rect)
-                    canvas.drawBitmap(bitmap, mMatrix, null)
+                    if (changePicMode && !it.isSelected && it == willChangeModel) {
+                        canvas.drawBitmap(bitmap, mMatrix, mPictureHalfAlphaPaint)
+                    } else {
+                        canvas.drawBitmap(bitmap, mMatrix, null)
+                    }
                     drawHollow(canvas, hollowX, hollowY, rect, it.isSelected)
 
-                    if (it.isSelected) {
-
-                        Log.d("JigsawView", "setPictureXToHollowCenter: ${it.xToHollowCenter}")
-                        Log.d("JigsawView", "setPictureYToHollowCenter: ${it.yToHollowCenter}")
-                    }
 
                 } else {
 
@@ -216,6 +231,15 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                 Log.d("JigsawView", "mLastX:$mLastX")
                 Log.d("JigsawView", "mLastY:$mLastY")
 
+                val tempModel = getTouchPicModel(event)
+                //长按选中
+                handler.postDelayed({
+                    mTouchPictureModel = tempModel
+                    selectPictureModel()
+                    changePicMode = true
+                    invalidate()
+                }, 600L)
+
                 mTouchPictureModel?.refreshIsTouchHollowState(event)
 
                 Log.d("JigsawView", "ACTION_DOWN pointerCount:${event.pointerCount}")
@@ -237,6 +261,10 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
             }
 
             MotionEvent.ACTION_MOVE -> {
+                val distanceFromDownPoint = getDisFromDownPoint(event)
+                if (distanceFromDownPoint > viewConfig.scaledTouchSlop) {
+                    handler.removeCallbacksAndMessages(null)
+                }
                 isNeedDrawShadow = true
                 when (event.pointerCount) {
                     1 -> {
@@ -261,6 +289,10 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                         }
 
                         mTouchPictureModel?.let {
+
+                            if (changePicMode) {
+                                willChangeModel = getTouchPicModel(event)
+                            }
 
                             it.xToHollowCenter = it.xToHollowCenter + dx
                             it.yToHollowCenter = it.yToHollowCenter + dy
@@ -300,6 +332,20 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                handler.removeCallbacksAndMessages(null)
+
+                //交换图片
+                if (changePicMode && mTouchPictureModel != null && willChangeModel != null) {
+                    val tempBitmap = mTouchPictureModel!!.bitmapPicture
+                    mTouchPictureModel!!.bitmapPicture = willChangeModel!!.bitmapPicture
+                    willChangeModel!!.bitmapPicture = tempBitmap
+                    mTouchPictureModel!!.refreshStateWhenChangePic()
+                    willChangeModel!!.refreshStateWhenChangePic()
+                }
+
+                changePicMode = false
+                willChangeModel = null
+
                 val distanceFromDownPoint = getDisFromDownPoint(event)
                 if (distanceFromDownPoint < viewConfig.scaledTouchSlop) {
                     //选中状态
@@ -331,7 +377,6 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                             }, PICTURE_ANIMATION_DELAY + 10)
                         }
                     }
-
                 }
 
                 mTouchPictureModel?.cancelHollowTouch(mTouchPictureModel!!)
