@@ -43,11 +43,9 @@ class MainActivity : AppCompatActivity() {
         jigsawModelList.add(pictureModel5)
         jigsawModelList.add(pictureModel6)
 
-
         addEffectPicForModel1(pictureModel2, pictureModel4, pictureModel6, pictureModel3, pictureModel5, pictureModel1)
         addEffectPicForModel2(pictureModel1, pictureModel3, pictureModel5, pictureModel4, pictureModel6, pictureModel2)
         addEffectPicForModel3(pictureModel2, pictureModel4, pictureModel6, pictureModel1, pictureModel5, pictureModel3)
-
 
         return jigsawModelList
     }
@@ -83,7 +81,6 @@ class MainActivity : AppCompatActivity() {
         list5.add(pictureModel4)
         modelArray2.put(HollowModel.RIGHT, list5)
         sourceModel.addEffectPictureModel(modelArray2, HollowModel.LEFT)
-
 
     }
 

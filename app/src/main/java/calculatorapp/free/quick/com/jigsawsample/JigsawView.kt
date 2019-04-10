@@ -2,10 +2,12 @@ package calculatorapp.free.quick.com.jigsawsample
 
 import android.content.Context
 import android.graphics.*
+import android.os.Handler
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
+
 
 /**
  * 创建时间： 2019/4/2
@@ -50,8 +52,15 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
     private var doubleTouchMode: Boolean = false
 
     private val viewConfig: ViewConfiguration
+    private var downTime: Long = 0
 
     private var isNeedDrawShadow = false
+    private lateinit var runnable: Runnable
+    private val handler = DelayHandler()
+
+    class DelayHandler : Handler() {
+
+    }
 
     init {
         mHollowPaint.color = Color.RED
@@ -71,7 +80,6 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
         //因为不支持wrap content，所以不需要重写onMeasure
         drawBackground(canvas)
         drawPicture(canvas)
-
     }
 
     private fun drawPicture(canvas: Canvas?) {
@@ -107,7 +115,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                     canvas.drawBitmap(bitmap, mMatrix, null)
                     drawHollow(canvas, hollowX, hollowY, rect, it.isSelected)
 
-                    if (it.isSelected){
+                    if (it.isSelected) {
 
                         Log.d("JigsawView", "setPictureXToHollowCenter: ${it.xToHollowCenter}")
                         Log.d("JigsawView", "setPictureYToHollowCenter: ${it.yToHollowCenter}")
@@ -119,7 +127,6 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
                 mMatrix.reset()
                 canvas.restore()
-
             }
 
             drawPictureShadow(canvas)
@@ -198,7 +205,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         when (event?.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                isNeedDrawShadow = true
+                downTime = System.currentTimeMillis()
 
                 mLastX = event.x
                 mLastY = event.y
@@ -209,15 +216,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                 Log.d("JigsawView", "mLastX:$mLastX")
                 Log.d("JigsawView", "mLastY:$mLastY")
 
-                mTouchPictureModel = getTouchPicModel(event)
-
-                // mTouchHollowModel = getTouchHollowModel(event, mTouchPictureModel)
-                mTouchPictureModel?.let {
-                    it.refreshIsTouchHollowState(event)
-                }
-
-                selectPictureModel()
-                invalidate()
+                mTouchPictureModel?.refreshIsTouchHollowState(event)
 
                 Log.d("JigsawView", "ACTION_DOWN pointerCount:${event.pointerCount}")
             }
@@ -225,22 +224,20 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
             MotionEvent.ACTION_POINTER_DOWN -> {
                 //双指模式
                 if (event.pointerCount == 2) {
-                    isNeedDrawShadow = true
 
+                    isNeedDrawShadow = true
                     doubleTouchMode = true
-                    mTouchPictureModel = getTouchPicModel(event)
-                    //mTouchHollowModel = null
 
                     if (mTouchPictureModel != null) {
                         mLastFingerDistance = distanceBetweenFingers(event)
 
                         Log.d("JigsawView", "ACTION_POINTER_DOWN mLastFingerDistance:$mLastFingerDistance")
-
                     }
                 }
             }
 
             MotionEvent.ACTION_MOVE -> {
+                isNeedDrawShadow = true
                 when (event.pointerCount) {
                     1 -> {
                         if (doubleTouchMode) {
@@ -256,7 +253,6 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                             if (pictureModel.isTouchHollow) {
                                 if (pictureModel.handleHollowDrag(event, dx, dy, true, refreshLastEventListener)) {
                                     invalidate()
-
                                 }
 
                                 //对边框处理过就不需要对图片进行处理了
@@ -304,13 +300,15 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-//                val distanceFromDownPoint = getDisFromDownPoint(event)
-//                if (distanceFromDownPoint < viewConfig.scaledTouchSlop) {
-//                    //选中状态
-//                    selectPictureModel()
-//                    invalidate()
-//                    return true
-//                }
+                val distanceFromDownPoint = getDisFromDownPoint(event)
+                if (distanceFromDownPoint < viewConfig.scaledTouchSlop) {
+                    //选中状态
+                    mTouchPictureModel = getTouchPicModel(event)
+                    selectPictureModel()
+                    invalidate()
+                    return true
+                }
+
                 isNeedDrawShadow = false
 
                 Log.d("JigsawView", "MotionEvent: ${event.actionMasked}")
@@ -367,6 +365,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
             1 -> {
                 val x = event.x.toInt()
                 val y = event.y.toInt()
+                Log.d("JigsawView", "getTouchPicModel x:$x y:$y")
                 for (picModel in mPictureModelList) {
                     val hollowX = picModel.hollowModel.hollowX
                     val hollowY = picModel.hollowModel.hollowY
