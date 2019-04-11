@@ -228,6 +228,8 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
                 mMatrix.postTranslate(pictureX.toFloat(), pictureY.toFloat())
                 mMatrix.postScale(scaleX, scaleY, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
+                mMatrix.postRotate(it.rotateDegree, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
+
                 canvas?.drawBitmap(bitmap, mMatrix, mPictureHalfAlphaPaint)
                 canvas?.restore()
             }
