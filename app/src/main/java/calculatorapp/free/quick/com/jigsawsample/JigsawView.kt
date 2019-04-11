@@ -186,6 +186,15 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
         invalidate()
     }
 
+    fun setRotateDegree(degree:Float){
+        mTouchPictureModel?.let {
+            it.rotateDegree = degree
+            Log.d("JigsawView", "rotateDegree: ${it.rotateDegree}")
+        }
+
+        invalidate()
+    }
+
     /**
      * 绘制选中的图片的虚影
      */

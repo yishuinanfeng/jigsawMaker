@@ -54,6 +54,24 @@ class MainActivity : AppCompatActivity() {
 
         })
 
+        degree.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                Log.d(TAG, "progress: $progress")
+                jigsawView.setRotateDegree(progress.toFloat())
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+        })
+
+
+
         needOverTurnHorizontal.setOnClickListener {
             jigsawView.overTurnHorizontal()
         }
