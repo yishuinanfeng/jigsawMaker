@@ -7,6 +7,16 @@ import android.util.Log
 import android.util.SparseArray
 import android.widget.SeekBar
 import kotlinx.android.synthetic.main.activity_main.*
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.view.View
+import java.io.ByteArrayOutputStream
+import android.opengl.ETC1.getHeight
+import android.opengl.ETC1.getWidth
+
+
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -79,6 +89,25 @@ class MainActivity : AppCompatActivity() {
         needOverTurnVertical.setOnClickListener {
             jigsawView.overTurnVertical()
         }
+
+        makeBitmap.setOnClickListener{
+            val bitmap = createBitmap(jigsawView)
+            imgResult.setImageBitmap(bitmap)
+            jigsawView.visibility = View.GONE
+
+//            val bStream = ByteArrayOutputStream()
+//            bitmap.compress(Bitmap.CompressFormat.PNG, 100, bStream)
+//            val byteArray = bStream.toByteArray()
+//            ResultActivity.gotoActivity(this,byteArray)
+        }
+    }
+
+    private fun createBitmap(view: View): Bitmap {
+        val bmp = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888)
+        val c = Canvas(bmp)
+        c.drawColor(Color.WHITE)
+        view.draw(c)
+        return bmp
     }
 
     private fun initPictureList(): MutableList<PictureModel> {

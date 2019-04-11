@@ -10,8 +10,13 @@
     <FrameLayout
         android:id="@+id/flContainer"
         android:layout_width="match_parent"
-        android:layout_height="400dp"
+        android:layout_height="350dp"
         android:layout_marginBottom="20dp">
+
+        <ImageView
+            android:id="@+id/imgResult"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
     </FrameLayout>
 
     <LinearLayout
@@ -40,23 +45,41 @@
             android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp" />
 
-        <TextView
-            android:id="@+id/needOverTurnHorizontal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="15sp"
-            android:padding="5dp"
-            android:text="水平翻转"
-            />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/needOverTurnVertical"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="15sp"
-            android:padding="5dp"
-            android:text="垂直翻转"
-            />
+            <TextView
+                android:id="@+id/needOverTurnHorizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:padding="5dp"
+                android:text="水平翻转" />
+
+            <TextView
+                android:id="@+id/needOverTurnVertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:padding="5dp"
+                android:layout_centerHorizontal="true"
+                android:text="垂直翻转"
+                />
+
+            <TextView
+                android:id="@+id/makeBitmap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:padding="5dp"
+                android:layout_alignParentEnd="true"
+                android:text="生成图片"
+                />
+
+        </RelativeLayout>
+
+
     </LinearLayout>
 
 
