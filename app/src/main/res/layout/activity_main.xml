@@ -32,7 +32,25 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp" />
+
+        <TextView
+            android:id="@+id/needOverTurnHorizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:text="水平翻转"
+            />
+
+        <TextView
+            android:id="@+id/needOverTurnVertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:text="垂直翻转"
+            />
     </LinearLayout>
+
+
 
 
 </LinearLayout>

@@ -16,6 +16,7 @@ import android.view.View
 data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel, var xToHollowCenter: Int = 0, var yToHollowCenter: Int = 0) {
 
     companion object {
+        private val TAG = PictureModel::class.java.simpleName
         private const val HOLLOW_TOUCH_WIDTH = 100
         private const val HOLLOW_SCALE_UPPER_LIMIT = 2
         private const val HOLLOW_TOUCH_LOWER_LIMIT = 100
@@ -24,7 +25,8 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
 
     var belongView: View? = null
     private var initScale: Float
-    var scale: Float
+    var scaleX: Float
+    var scaleY: Float
     /**
      * 指定了当前PictureModel可移动的边框以及会被当前的PictureModel边框的拖动影响到的其他PictureModel
      *
@@ -39,19 +41,25 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
      * 是否触摸到边框
      */
     var isTouchHollow = false
+    var rotateDegree = 0f
+
+    private var overTurnHorizontal = 1f
+    private var overTurnVertical = 1f
 
     init {
         val hollowWidth = hollowModel.width
         val hollowHeight = hollowModel.height
         initScale = getCenterPicScale(bitmapPicture, hollowWidth, hollowHeight)
-        scale = initScale
+        scaleX = initScale
+        scaleY = initScale
     }
 
     fun refreshStateWhenChangePic() {
         val hollowWidth = hollowModel.width
         val hollowHeight = hollowModel.height
         initScale = getCenterPicScale(bitmapPicture, hollowWidth, hollowHeight)
-        scale = initScale
+        scaleX = initScale * overTurnHorizontal
+        scaleY = initScale * overTurnVertical
         xToHollowCenter = 0
         yToHollowCenter = 0
     }
@@ -65,14 +73,16 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
     }
 
     private fun setScaleWithCondition(value: Float) {
-        if (value < initScale) {
-            scale = initScale
+        if (Math.abs(scaleX * value) < initScale || Math.abs(scaleY * value) < initScale) {
+            scaleX = initScale * overTurnHorizontal
+            scaleY = initScale * overTurnVertical
             return
         }
-        if (value > HOLLOW_SCALE_UPPER_LIMIT * initScale) {
+        if (Math.abs(scaleX * value) > HOLLOW_SCALE_UPPER_LIMIT * initScale) {
             return
         }
-        scale = value
+        scaleX *= value
+        scaleY *= value
     }
 
     /**
@@ -155,7 +165,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
                     val lastWidth = model.width
                     model.width = width
                     model.hollowX = model.hollowX + dx
-                    setScaleWithCondition(scale * (model.width.toFloat() / lastWidth.toFloat()))
+                    setScaleWithCondition((model.width.toFloat() / lastWidth.toFloat()))
 
                 }
 
@@ -177,8 +187,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
                     }
                     val lastWidth = model.width
                     model.width = model.width + dx
-                    setScaleWithCondition(scale * (model.width.toFloat() / lastWidth.toFloat()))
-
+                    setScaleWithCondition((model.width.toFloat() / lastWidth.toFloat()))
                 }
 
                 HollowModel.TOP -> {
@@ -200,8 +209,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
                     val lastHeight = model.height
                     model.height = height
                     model.hollowY = model.hollowY + dy
-                    setScaleWithCondition(scale * (model.height.toFloat() / lastHeight.toFloat()))
-
+                    setScaleWithCondition((model.height.toFloat() / lastHeight.toFloat()))
 
                 }
 
@@ -225,7 +233,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
                     val lastHeight = model.height
                     model.height = height
 
-                    setScaleWithCondition(scale * (model.height.toFloat() / lastHeight.toFloat()))
+                    setScaleWithCondition((model.height.toFloat() / lastHeight.toFloat()))
 
                     Log.d("JigsawView", "HollowModel.height:${model.height}")
                     Log.d("JigsawView", "HollowModel dy:$dy")
@@ -237,6 +245,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
             }
 
             makePictureCropHollowWithoutAnimationIfNeed()
+            Log.d(TAG, "scalex: $scaleX scaleY: $scaleY")
             overRangeListener.invoke(event)
         }
 
@@ -253,7 +262,6 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
                         return false
                     }
                     handleEffectPicForOneDirection(array, event, dx, dy, HollowModel.LEFT, overRangeListener)
-
                 }
 
                 HollowModel.TOP -> {
@@ -358,16 +366,15 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
 
         val hollowModel = hollowModel
         val bitmap = bitmapPicture
-        val scale = scale
         val hollowX = hollowModel.hollowX
         val hollowY = hollowModel.hollowY
         val hollowWidth = hollowModel.width
         val hollowHeight = hollowModel.height
 
-        val pictureLeft = (hollowX + xToHollowCenter + hollowWidth / 2 - bitmap.width / 2 * scale)
-        val pictureTop = (hollowY + yToHollowCenter + hollowHeight / 2 - bitmap.height / 2 * scale)
-        val pictureRight = (hollowX + xToHollowCenter + hollowWidth / 2 + bitmap.width / 2 * scale)
-        val pictureBottom = (hollowY + yToHollowCenter + hollowHeight / 2 + bitmap.height / 2 * scale)
+        val pictureLeft = (hollowX + xToHollowCenter + hollowWidth / 2 - bitmap.width / 2 * Math.abs(scaleX))
+        val pictureTop = (hollowY + yToHollowCenter + hollowHeight / 2 - bitmap.height / 2 * Math.abs(scaleY))
+        val pictureRight = (hollowX + xToHollowCenter + hollowWidth / 2 + bitmap.width / 2 * Math.abs(scaleX))
+        val pictureBottom = (hollowY + yToHollowCenter + hollowHeight / 2 + bitmap.height / 2 * Math.abs(scaleY))
 
         val leftDiffer = pictureLeft - hollowX
         val topDiffer = pictureTop - hollowY
@@ -426,10 +433,10 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
         val hollowWidth = it.hollowModel.width
         val hollowHeight = it.hollowModel.height
 
-        val pictureLeft = (hollowX + it.xToHollowCenter + hollowWidth / 2 - it.bitmapPicture.width / 2 * it.scale)
-        val pictureTop = (hollowY + it.yToHollowCenter + hollowHeight / 2 - it.bitmapPicture.height / 2 * it.scale)
-        val pictureRight = (hollowX + it.xToHollowCenter + hollowWidth / 2 + it.bitmapPicture.width / 2 * it.scale)
-        val pictureBottom = (hollowY + it.yToHollowCenter + hollowHeight / 2 + it.bitmapPicture.height / 2 * it.scale)
+        val pictureLeft = (hollowX + it.xToHollowCenter + hollowWidth / 2 - it.bitmapPicture.width / 2 * Math.abs(it.scaleX))
+        val pictureTop = (hollowY + it.yToHollowCenter + hollowHeight / 2 - it.bitmapPicture.height / 2 * Math.abs(it.scaleY))
+        val pictureRight = (hollowX + it.xToHollowCenter + hollowWidth / 2 + it.bitmapPicture.width / 2 * Math.abs(it.scaleX))
+        val pictureBottom = (hollowY + it.yToHollowCenter + hollowHeight / 2 + it.bitmapPicture.height / 2 * Math.abs(it.scaleY))
         //四个方向的偏移
         val leftDiffer = pictureLeft - hollowX
         val topDiffer = pictureTop - hollowY
@@ -438,7 +445,8 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
         //由偏移得到是否存在空白处
         if (leftDiffer > 0 || topDiffer > 0 || rightDiffer < 0 || bottomDiffer < 0) {
             val targetScale = getCenterPicScale(it.bitmapPicture, hollowWidth, hollowHeight)
-            startAnimation("PictureScale", it.scale, targetScale)
+            startAnimation("PictureScale", it.scaleX, targetScale)
+            // startAnimation("PictureScale", it.scaleY, targetScale)
             startAnimation("PictureXToHollowCenter", it.xToHollowCenter, 0)
             startAnimation("PictureYToHollowCenter", it.yToHollowCenter, 0)
         }
@@ -451,16 +459,15 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
     fun translatePictureCropHollowByAnimationIfNeed() {
         val hollowModel = hollowModel
         val bitmap = bitmapPicture
-        val scale = scale
         val hollowX = hollowModel.hollowX
         val hollowY = hollowModel.hollowY
         val hollowWidth = hollowModel.width
         val hollowHeight = hollowModel.height
 
-        val pictureLeft = (hollowX + xToHollowCenter + hollowWidth / 2 - bitmap.width / 2 * scale)
-        val pictureTop = (hollowY + yToHollowCenter + hollowHeight / 2 - bitmap.height / 2 * scale)
-        val pictureRight = (hollowX + xToHollowCenter + hollowWidth / 2 + bitmap.width / 2 * scale)
-        val pictureBottom = (hollowY + yToHollowCenter + hollowHeight / 2 + bitmap.height / 2 * scale)
+        val pictureLeft = (hollowX + xToHollowCenter + hollowWidth / 2 - bitmap.width / 2 * Math.abs(scaleX))
+        val pictureTop = (hollowY + yToHollowCenter + hollowHeight / 2 - bitmap.height / 2 * Math.abs(scaleY))
+        val pictureRight = (hollowX + xToHollowCenter + hollowWidth / 2 + bitmap.width / 2 * Math.abs(scaleX))
+        val pictureBottom = (hollowY + yToHollowCenter + hollowHeight / 2 + bitmap.height / 2 * Math.abs(scaleY))
 
         val leftDiffer = pictureLeft - hollowX
         val topDiffer = pictureTop - hollowY
@@ -545,10 +552,22 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
      *
      */
     fun setPictureScale(scale: Float) {
-        this.scale = scale
+//        this.scaleX = scale*overTurnHorizontal
+//        this.scaleY = scale*overTurnVertical
+        this.scaleX = scale
+        this.scaleY = scale
         belongView?.invalidate()
 
-        Log.d("PictureModel", "setScale: $scale")
+        Log.d("PictureModel", "setScaleX: $scale")
     }
 
+    fun overTurnHorizontal() {
+        overTurnHorizontal *= -1
+        scaleX *= overTurnHorizontal
+    }
+
+    fun overTurnVertical() {
+        overTurnVertical *= -1
+        scaleY = scaleY * overTurnVertical
+    }
 }

@@ -16,11 +16,11 @@ data class HollowModel(var hollowX: Int,var hollowY: Int,var initWidth: Int,var 
         /**
          * 表示对应的边（没有、上、左、下、右）
          */
-        const val NO_SIDE = 0
-        const val LEFT = 1
-        const val TOP = 2
-        const val RIGHT = 3
-        const val BOTTOM = 4
+        const val NO_SIDE = -1
+        const val LEFT = 0
+        const val TOP = 1
+        const val RIGHT = 2
+        const val BOTTOM = 3
     }
 
     var selectSide:Int = NO_SIDE

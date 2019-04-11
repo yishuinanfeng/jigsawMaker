@@ -20,12 +20,12 @@ class MainActivity : AppCompatActivity() {
 
         val jigsawModelList = initPictureList()
         val jigsawView = JigsawView(this, jigsawModelList)
-        flContainer.addView(jigsawView,0)
+        flContainer.addView(jigsawView, 0)
 
-        gap.setOnSeekBarChangeListener(object :SeekBar.OnSeekBarChangeListener{
+        gap.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                Log.d(TAG,"progress: $progress")
-                jigsawView.setGap(progress.toFloat()/100)
+                Log.d(TAG, "progress: $progress")
+                jigsawView.setGap(progress.toFloat() / 100)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -38,10 +38,10 @@ class MainActivity : AppCompatActivity() {
 
         })
 
-        round.setOnSeekBarChangeListener(object :SeekBar.OnSeekBarChangeListener{
+        round.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                Log.d(TAG,"progress: $progress")
-                jigsawView.setHollowRoundRadius(progress.toFloat()/100)
+                Log.d(TAG, "progress: $progress")
+                jigsawView.setHollowRoundRadius(progress.toFloat() / 100)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -53,6 +53,14 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
+
+        needOverTurnHorizontal.setOnClickListener {
+            jigsawView.overTurnHorizontal()
+        }
+
+        needOverTurnVertical.setOnClickListener {
+            jigsawView.overTurnVertical()
+        }
     }
 
     private fun initPictureList(): MutableList<PictureModel> {

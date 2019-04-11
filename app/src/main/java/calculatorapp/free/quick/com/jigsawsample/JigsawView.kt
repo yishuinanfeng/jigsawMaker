@@ -76,6 +76,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
      */
     private var hollowRoundRadius = 10.0f
 
+
     fun setGap(gap: Float) {
         this.gap = gap * GAP_MAX
         invalidate()
@@ -109,6 +110,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
         drawPicture(canvas)
     }
 
+
     private fun drawPicture(canvas: Canvas?) {
 
         canvas?.let { canvas ->
@@ -121,9 +123,10 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                 }
                 canvas.save()
 
-                val scale = it.scale
+                val scaleX = it.scaleX
+                val scaleY = it.scaleY
 
-                Log.d("JigsawView", "scale:$scale")
+              //  Log.d("JigsawView", "scaleX:$scale")
                 val bitmap = it.bitmapPicture
 
                 val hollowModel = it.hollowModel
@@ -142,7 +145,9 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                     val pictureY = hollowHeight / 2 - bitmap.height / 2 + it.yToHollowCenter
 
                     mMatrix.postTranslate(pictureX.toFloat(), pictureY.toFloat())
-                    mMatrix.postScale(scale, scale, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
+                    mMatrix.postScale(scaleX, scaleY , (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
+
+                    mMatrix.postRotate(it.rotateDegree, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
 
                     val clipPath = Path()
                     clipPath.addRoundRect(rect, hollowRoundRadius, hollowRoundRadius, Path.Direction.CW)
@@ -167,6 +172,20 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
     }
 
+    fun overTurnHorizontal() {
+        mTouchPictureModel?.let {
+            it.overTurnHorizontal()
+        }
+        invalidate()
+    }
+
+    fun overTurnVertical() {
+        mTouchPictureModel?.let {
+            it.overTurnVertical()
+        }
+        invalidate()
+    }
+
     /**
      * 绘制选中的图片的虚影
      */
@@ -179,9 +198,10 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
             canvas?.save()
 
-            val scale = it.scale
+            val scaleX = it.scaleX
+            val scaleY = it.scaleY
 
-            Log.d("JigsawView", "scale:$scale")
+           // Log.d("JigsawView", "scaleX:$scale")
             val bitmap = it.bitmapPicture
 
             val hollowModel = it.hollowModel
@@ -198,8 +218,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                 val pictureY = hollowHeight / 2 - bitmap.height / 2 + it.yToHollowCenter
 
                 mMatrix.postTranslate(pictureX.toFloat(), pictureY.toFloat())
-                mMatrix.postScale(scale, scale, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
-
+                mMatrix.postScale(scaleX, scaleY, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
                 canvas?.drawBitmap(bitmap, mMatrix, mPictureHalfAlphaPaint)
                 canvas?.restore()
             }
@@ -209,9 +228,9 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
     private fun drawHollow(canvas: Canvas, hollowX: Int, hollowY: Int, rect: RectF, selected: Boolean) {
         if (selected) {
-            canvas.drawRoundRect(rect,hollowRoundRadius,hollowRoundRadius, mHollowSelectPaint)
+            canvas.drawRoundRect(rect, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
         } else {
-            canvas.drawRoundRect(rect,hollowRoundRadius,hollowRoundRadius, mHollowPaint)
+            canvas.drawRoundRect(rect, hollowRoundRadius, hollowRoundRadius, mHollowPaint)
         }
     }
 
@@ -332,11 +351,13 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
 
                             Log.d("JigsawView", "scaleRatioDelta:$scaleRatioDelta")
 
-                            val tempScale = scaleRatioDelta * it.scale
+                            val tempScaleX = scaleRatioDelta * it.scaleX
+                            val tempScaleY = scaleRatioDelta * it.scaleY
 
                             //对缩放比做限制
-                            if (Math.abs(tempScale) < 3 || Math.abs(tempScale) > 0.5) {
-                                it.scale = tempScale
+                            if (Math.abs(tempScaleX) < 3 || Math.abs(tempScaleX) > 0.5) {
+                                it.scaleX = tempScaleX
+                                it.scaleY = tempScaleY
 
                                 invalidate()
                                 mLastFingerDistance = fingerDistance
