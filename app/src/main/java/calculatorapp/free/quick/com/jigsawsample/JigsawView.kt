@@ -15,7 +15,7 @@ import android.view.ViewConfiguration
  * 功能描述：一个多拼图可拖拽缩放、边框的View。
  * 注意：1.暂时不支持在xml文件中定义 2.布局不支持wrap content
  */
-class JigsawView(context: Context, private var mPictureModelList: List<PictureModel>) : View(context) {
+class JigsawView(context: Context) : View(context) {
 
     companion object {
         private const val GAP_MAX = 10
@@ -25,10 +25,10 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
     }
 
     init {
-        mPictureModelList.forEach {
-            it.belongView = this
-        }
+
     }
+
+    private var mPictureModelList = mutableListOf<PictureModel>()
 
     //绘制半透明（虚影）图片的画笔
     private val mPictureHalfAlphaPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -76,6 +76,16 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
      */
     private var hollowRoundRadius = 10.0f
 
+    fun initPictureModelList(pictureModelList: List<PictureModel>){
+        mPictureModelList.clear()
+        mPictureModelList.addAll(pictureModelList)
+        mPictureModelList.forEach {
+            it.belongView = this
+        }
+
+        invalidate()
+    }
+
 
     fun setGap(gap: Float) {
         this.gap = gap * GAP_MAX
@@ -114,7 +124,7 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
     private fun drawPicture(canvas: Canvas?) {
 
         canvas?.let { canvas ->
-            mPictureModelList.forEach {
+            mPictureModelList?.forEach {
 
                 if (it.isSelected && changePicMode) {
                     Log.d("JigsawView", "setPictureXToHollowCenter: ${it.xToHollowCenter}")
@@ -137,7 +147,9 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                 val hollowPath = hollowModel.path
 
                 if (hollowPath == null) {
+                    //
                     val rect = RectF(gap, gap, (hollowWidth - gap), (hollowHeight - gap))
+                    //Path使用绝对值点的话，本行应该移动到canvas.clip后面
                     canvas.translate(hollowX.toFloat(), hollowY.toFloat())
 
                     //图片的中点位置以边框区域中点为标准。根据图片大小以及图片中心点边框区域中点的偏移距离和算出缩放前图片平移后左上角坐标
@@ -157,6 +169,8 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
                     } else {
                         canvas.drawBitmap(bitmap, mMatrix, null)
                     }
+
+                    //绘制path
                     drawHollow(canvas, hollowX, hollowY, rect, it.isSelected)
 
                 } else {
@@ -173,16 +187,12 @@ class JigsawView(context: Context, private var mPictureModelList: List<PictureMo
     }
 
     fun overTurnHorizontal() {
-        mTouchPictureModel?.let {
-            it.overTurnHorizontal()
-        }
+        mTouchPictureModel?.overTurnHorizontal()
         invalidate()
     }
 
     fun overTurnVertical() {
-        mTouchPictureModel?.let {
-            it.overTurnVertical()
-        }
+        mTouchPictureModel?.overTurnVertical()
         invalidate()
     }
 

@@ -11,26 +11,46 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.view.View
-import java.io.ByteArrayOutputStream
-import android.opengl.ETC1.getHeight
-import android.opengl.ETC1.getWidth
-
-
 
 
 class MainActivity : AppCompatActivity() {
+    private var  isJigsawInit = false
+    private lateinit var jigsawView:JigsawView
 
     companion object {
         private val TAG = MainActivity::class.java.simpleName
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        if (!isJigsawInit){
+            val jigsawWidth = jigsawView.width
+            addJigsaw(jigsawWidth)
+            isJigsawInit = true
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val jigsawModelList = initPictureList()
-        val jigsawView = JigsawView(this, jigsawModelList)
+      //  val jigsawModelList = initPictureList()
+        jigsawView = JigsawView(this)
         flContainer.addView(jigsawView, 0)
+
+    }
+
+    fun addJigsaw(jigsawWidth: Int) {
+        val bitmap1 = BitmapFactory.decodeResource(resources, R.drawable.aa)
+        val bitmap2 = BitmapFactory.decodeResource(resources, R.drawable.bb)
+        val bitmaList = mutableListOf<Bitmap>()
+        bitmaList.add(bitmap1)
+        bitmaList.add(bitmap2)
+        bitmaList.add(bitmap1)
+        bitmaList.add(bitmap2)
+        val jigsawModelList = PictureModelFactory.getPictureModelList(this, bitmaList, R.raw.hollow, jigsawWidth)
+
+        jigsawView.initPictureModelList(jigsawModelList)
+
 
         gap.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -90,20 +110,20 @@ class MainActivity : AppCompatActivity() {
             jigsawView.overTurnVertical()
         }
 
-        makeBitmap.setOnClickListener{
+        makeBitmap.setOnClickListener {
             val bitmap = createBitmap(jigsawView)
             imgResult.setImageBitmap(bitmap)
             jigsawView.visibility = View.GONE
 
-//            val bStream = ByteArrayOutputStream()
-//            bitmap.compress(Bitmap.CompressFormat.PNG, 100, bStream)
-//            val byteArray = bStream.toByteArray()
-//            ResultActivity.gotoActivity(this,byteArray)
+    //            val bStream = ByteArrayOutputStream()
+    //            bitmap.compress(Bitmap.CompressFormat.PNG, 100, bStream)
+    //            val byteArray = bStream.toByteArray()
+    //            ResultActivity.gotoActivity(this,byteArray)
         }
     }
 
     private fun createBitmap(view: View): Bitmap {
-        val bmp = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888)
+        val bmp = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
         val c = Canvas(bmp)
         c.drawColor(Color.WHITE)
         view.draw(c)
@@ -136,9 +156,9 @@ class MainActivity : AppCompatActivity() {
         jigsawModelList.add(pictureModel5)
         jigsawModelList.add(pictureModel6)
 
-        addEffectPicForModel1(pictureModel2, pictureModel4, pictureModel6, pictureModel3, pictureModel5, pictureModel1)
-        addEffectPicForModel2(pictureModel1, pictureModel3, pictureModel5, pictureModel4, pictureModel6, pictureModel2)
-        addEffectPicForModel3(pictureModel2, pictureModel4, pictureModel6, pictureModel1, pictureModel5, pictureModel3)
+//        addEffectPicForModel1(pictureModel2, pictureModel4, pictureModel6, pictureModel3, pictureModel5, pictureModel1)
+//        addEffectPicForModel2(pictureModel1, pictureModel3, pictureModel5, pictureModel4, pictureModel6, pictureModel2)
+//        addEffectPicForModel3(pictureModel2, pictureModel4, pictureModel6, pictureModel1, pictureModel5, pictureModel3)
 
         return jigsawModelList
     }

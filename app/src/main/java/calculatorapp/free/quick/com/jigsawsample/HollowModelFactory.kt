@@ -1,56 +1,46 @@
 package calculatorapp.free.quick.com.jigsawsample
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.Path
 import android.graphics.Point
-import android.support.annotation.RawRes
+import android.support.annotation.IntegerRes
 import org.json.JSONObject
 
 /**
- * 创建时间： 2019/4/9
+ * 创建时间： 2019/4/11
  * 作者：yanyinan
  * 功能描述：
+ * @param standLength:表示单位长度，因为json中的长度都是以单位长度为1进行表示的
  */
-class PictureModelFactory {
+class HollowModelFactory() {
 
     companion object {
 
-        fun getPictureModelList(context: Context, bitmapList: List<Bitmap>, @RawRes resId: Int, standLength: Int): List<PictureModel> {
-            val pictureList = mutableListOf<PictureModel>()
-            val hollowList = getHollowListByJsonFile(context, resId, standLength)
-            hollowList.forEachIndexed { index, hollowModel ->
-                val pictureModel = PictureModel(bitmapList[index], hollowModel)
-                pictureList.add(pictureModel)
-            }
-
-            return pictureList
-        }
-
-        private fun getHollowListByJsonFile(context: Context, @RawRes resId: Int, standLength: Int): List<HollowModel> {
+        fun getHollowListByJsonFile(context: Context,@IntegerRes resId:Int, standLength: Int): List<HollowModel> {
             val hollowList = mutableListOf<HollowModel>()
-            val jsonString = readFile(context, resId)
+            val jsonString = readFile(context,resId)
             val jsonObject = JSONObject(jsonString)
             val circleArray = jsonObject.optJSONArray("circles")
             if (circleArray != null) {
 
             } else {
                 //非圆形
-                val hollowArray = jsonObject.optJSONArray("hollows")
-                val hollowPointArray = mutableListOf<Point>()
+                val hollowArray = jsonObject.getJSONArray("hollows")
                 hollowArray?.let {
+                    val hollowPointArray = mutableListOf<Point>()
                     for (i in 0 until hollowArray.length()) {
-                        hollowPointArray.clear()
-
-                        val hollowLocationStr = hollowArray[i] as? String
-                        val positionArrayForOneHollow = hollowLocationStr?.split(" ")
-
-                        positionArrayForOneHollow?.forEach { p ->
-                            val xAndY = p.split(",")
-                            val x = xAndY[0].toFloat() * standLength
-                            val y = xAndY[1].toFloat() * standLength
-                            val point = Point(x.toInt(), y.toInt())
-                            hollowPointArray.add(point)
+                        val hollowLocationStr = hollowArray.optJSONArray(i)
+                        val size = hollowLocationStr.length()
+                        for (j in 0 until size) {
+                            val position: String? = hollowLocationStr[j] as? String
+                            val positionArrayForOneHollow = position?.split(" ")
+                            positionArrayForOneHollow?.forEach { p ->
+                                val xAndY = p.split(",")
+                                val x = xAndY[0].toFloat() * standLength
+                                val y = xAndY[1].toFloat() * standLength
+                                val point = Point(x.toInt(), y.toInt())
+                                hollowPointArray.add(point)
+                            }
                         }
 
                         val hollowPath = Path()
@@ -65,7 +55,7 @@ class PictureModelFactory {
 
                         //通过hollowLocationStr求出外接矩形，将外接矩形数据写入HollowModel
                         val hollow = HollowModel(pointHollowArray[0], pointHollowArray[1], pointHollowArray[2] - pointHollowArray[0]
-                                , pointHollowArray[3] - pointHollowArray[1])
+                                , pointHollowArray[1] - pointHollowArray[3], hollowPath)
                         hollowList.add(hollow)
                     }
                 }
@@ -87,22 +77,17 @@ class PictureModelFactory {
                 val y = point.y
                 if (x < left || left == -1) {
                     left = x
-                }
-
-                if (x > right || right == -1) {
+                } else if (x > right || right == -1) {
                     right = x
                 }
 
                 if (y < top || top == -1) {
                     top = y
-                }
-
-                if (y > bottom || bottom == -1) {
+                } else if (y > bottom || bottom == -1) {
                     bottom = y
                 }
             }
             return arrayOf(left, top, right, bottom)
         }
     }
-
 }
