@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.Path
 import android.graphics.Point
 import android.support.annotation.RawRes
+import android.util.SparseArray
 import org.json.JSONObject
 
 /**
@@ -18,19 +19,153 @@ class PictureModelFactory {
 
         fun getPictureModelList(context: Context, bitmapList: List<Bitmap>, @RawRes resId: Int, standLength: Int): List<PictureModel> {
             val pictureList = mutableListOf<PictureModel>()
-            val hollowList = getHollowListByJsonFile(context, resId, standLength)
+            val jsonString = readFile(context, resId)
+            val jsonObject = JSONObject(jsonString)
+            val hollowList = getHollowListByJsonFile(standLength, jsonObject)
             hollowList.forEachIndexed { index, hollowModel ->
                 val pictureModel = PictureModel(bitmapList[index], hollowModel)
                 pictureList.add(pictureModel)
             }
 
+            handleEffectPicModel(jsonObject, pictureList)
             return pictureList
         }
 
-        private fun getHollowListByJsonFile(context: Context, @RawRes resId: Int, standLength: Int): List<HollowModel> {
+        private fun handleEffectPicModel(jsonObject: JSONObject, pictureList: MutableList<PictureModel>) {
+            val controls = jsonObject.optJSONArray("controls")
+            controls?.let {
+                for (i in 0 until controls.length()) {
+                    val leftMap = SparseArray<List<PictureModel>>()
+                    val topMap = SparseArray<List<PictureModel>>()
+                    val rightMap = SparseArray<List<PictureModel>>()
+                    val bottomMap = SparseArray<List<PictureModel>>()
+
+                    val hollowLocationStr = controls[i] as? String
+                    //当前的PictureModel
+                    val currentPictureModel = pictureList[i]
+
+                    val effectHollow = hollowLocationStr?.split(" ")
+
+                    val picListLeftRight = mutableListOf<PictureModel>()
+                    val picListLeftLeft = mutableListOf<PictureModel>()
+                    val picListRightLeft = mutableListOf<PictureModel>()
+                    val picListRightRight = mutableListOf<PictureModel>()
+                    val picListTopBottom = mutableListOf<PictureModel>()
+                    val picListTopTop = mutableListOf<PictureModel>()
+                    val picListBottomTop = mutableListOf<PictureModel>()
+                    val picListBottomBottom = mutableListOf<PictureModel>()
+
+                    effectHollow?.forEach { effect ->
+                        val effectFactor = effect.split(",")
+                        //当前Hollow拖动的边
+                        val currentDirection = effectFactor[0].toInt()
+                        //联动到的Hollow
+                        val targetHollowIndex = effectFactor[1].toInt()
+                        //联动到的Hollow被联动的边
+                        val targetHollowDirection = effectFactor[2].toInt()
+
+                        //被联动的PictureModel
+                        val targetPictureModel = pictureList[targetHollowIndex]
+
+                        when (currentDirection) {
+
+                            HollowModel.LEFT -> {
+                                when (targetHollowDirection) {
+                                    HollowModel.LEFT -> {
+                                        picListLeftLeft.add(targetPictureModel)
+                                    }
+
+                                    HollowModel.RIGHT -> {
+                                        picListLeftRight.add(targetPictureModel)
+                                    }
+
+                                }
+                            }
+
+                            HollowModel.TOP -> {
+                                when (targetHollowDirection) {
+                                    HollowModel.TOP -> {
+                                        picListTopTop.add(targetPictureModel)
+                                    }
+
+                                    HollowModel.BOTTOM -> {
+                                        picListTopBottom.add(targetPictureModel)
+                                    }
+
+                                }
+                            }
+
+                            HollowModel.RIGHT -> {
+                                when (targetHollowDirection) {
+                                    HollowModel.LEFT -> {
+                                        picListRightLeft.add(targetPictureModel)
+                                    }
+
+                                    HollowModel.RIGHT -> {
+                                        picListRightRight.add(targetPictureModel)
+                                    }
+
+                                }
+                            }
+
+                            HollowModel.BOTTOM -> {
+                                when (targetHollowDirection) {
+                                    HollowModel.TOP -> {
+                                        picListBottomTop.add(targetPictureModel)
+                                    }
+
+                                    HollowModel.BOTTOM -> {
+                                        picListBottomBottom.add(targetPictureModel)
+                                    }
+
+                                }
+                            }
+                        }
+
+                    }
+
+                    if (picListLeftLeft.size > 0) {
+                        leftMap.put(HollowModel.LEFT, picListLeftLeft)
+                    }
+                    if (picListLeftRight.size > 0) {
+                        leftMap.put(HollowModel.RIGHT, picListLeftRight)
+                    }
+                    currentPictureModel.addEffectPictureModel(leftMap, HollowModel.LEFT)
+
+                    if (picListTopTop.size > 0) {
+                        topMap.put(HollowModel.TOP, picListTopTop)
+                    }
+                    if (picListTopBottom.size > 0) {
+                        topMap.put(HollowModel.BOTTOM, picListTopBottom)
+                    }
+                    currentPictureModel.addEffectPictureModel(topMap, HollowModel.TOP)
+
+
+                    if (picListRightLeft.size > 0) {
+                        rightMap.put(HollowModel.LEFT, picListRightLeft)
+                    }
+                    if (picListRightRight.size > 0) {
+                        rightMap.put(HollowModel.RIGHT, picListRightRight)
+                    }
+                    currentPictureModel.addEffectPictureModel(rightMap, HollowModel.RIGHT)
+
+
+                    if (picListBottomTop.size > 0) {
+                        bottomMap.put(HollowModel.TOP, picListBottomTop)
+                    }
+                    if (picListBottomBottom.size > 0) {
+                        bottomMap.put(HollowModel.BOTTOM, picListBottomBottom)
+                    }
+                    currentPictureModel.addEffectPictureModel(bottomMap, HollowModel.BOTTOM)
+
+                }
+
+            }
+        }
+
+        private fun getHollowListByJsonFile(standLength: Int, jsonObject: JSONObject): List<HollowModel> {
             val hollowList = mutableListOf<HollowModel>()
-            val jsonString = readFile(context, resId)
-            val jsonObject = JSONObject(jsonString)
+
             val circleArray = jsonObject.optJSONArray("circles")
             if (circleArray != null) {
 

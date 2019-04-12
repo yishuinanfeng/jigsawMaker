@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun addJigsaw(jigsawWidth: Int) {
+    private fun addJigsaw(jigsawWidth: Int) {
         val bitmap1 = BitmapFactory.decodeResource(resources, R.drawable.aa)
         val bitmap2 = BitmapFactory.decodeResource(resources, R.drawable.bb)
         val bitmaList = mutableListOf<Bitmap>()
