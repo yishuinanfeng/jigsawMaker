@@ -16,6 +16,7 @@ import android.view.View
 class MainActivity : AppCompatActivity() {
     private var  isJigsawInit = false
     private lateinit var jigsawView:JigsawView
+    private val picFactory =  PictureModelFactory()
 
     companion object {
         private val TAG = MainActivity::class.java.simpleName
@@ -34,7 +35,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
       //  val jigsawModelList = initPictureList()
-        jigsawView = JigsawView(this)
+        val heightWidthRatio = picFactory.getJigsawHeightWidthRatio(this,R.raw.hollow)
+        jigsawView = JigsawView(this,heightWidthRatio)
         flContainer.addView(jigsawView, 0)
 
     }
@@ -47,7 +49,7 @@ class MainActivity : AppCompatActivity() {
         bitmaList.add(bitmap2)
         bitmaList.add(bitmap1)
         bitmaList.add(bitmap2)
-        val jigsawModelList = PictureModelFactory.getPictureModelList(this, bitmaList, R.raw.hollow, jigsawWidth)
+        val jigsawModelList = picFactory.getPictureModelList(this, bitmaList, R.raw.hollow, jigsawWidth)
 
         jigsawView.initPictureModelList(jigsawModelList)
 

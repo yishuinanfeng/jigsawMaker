@@ -14,17 +14,15 @@ import android.view.ViewConfiguration
  * 作者：yanyinan
  * 功能描述：一个多拼图可拖拽缩放、边框的View。
  * 注意：1.暂时不支持在xml文件中定义 2.布局不支持wrap content
+ * @param heightWidthRatio 高度比宽度
  */
-class JigsawView(context: Context) : View(context) {
+class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
+    private val mHeightWidthRatio: Float = heightWidthRatio
 
     companion object {
         private const val GAP_MAX = 10
         private const val ROUND_RADIUS_MAX = 10
         private const val PICTURE_ANIMATION_DELAY = 100L
-
-    }
-
-    init {
 
     }
 
@@ -118,6 +116,12 @@ class JigsawView(context: Context) : View(context) {
 
         drawBackground(canvas)
         drawPicture(canvas)
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val width = MeasureSpec.getSize(widthMeasureSpec)
+        val height = width * mHeightWidthRatio
+        setMeasuredDimension(width, height.toInt())
     }
 
 
