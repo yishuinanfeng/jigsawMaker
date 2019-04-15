@@ -174,7 +174,21 @@ class PictureModelFactory {
 
             val circleArray = jsonObject.optJSONArray(CIRCLE_JSON_KEY)
             if (circleArray != null) {
-
+                for (i in 0 until circleArray.length()) {
+                    val circleLocationStr = circleArray[i] as? String
+                    val positionArrayForOneCircle = circleLocationStr?.split(" ")
+                    //这里使用“!!”是因为模板为自己提供，如果为空说明模板有错
+                    val circleCenterX = positionArrayForOneCircle!![0].split(",")[0].toFloat() * standLength
+                    val circleCenterY = positionArrayForOneCircle[0].split(",")[1].toFloat() * standLength
+                    val radius = positionArrayForOneCircle[1].toFloat() * standLength
+                    val hollowPath = Path()
+                    hollowPath.addCircle(circleCenterX, circleCenterY, radius, Path.Direction.CW)
+                    //通过hollowLocationStr求出外接矩形，将外接矩形数据写入HollowModel
+                    val pointHollowArray = getPointsHollowForCircle(circleCenterX, circleCenterY, radius)
+                    val hollow = HollowModel(pointHollowArray[0], pointHollowArray[1], pointHollowArray[2] - pointHollowArray[0]
+                            , pointHollowArray[3] - pointHollowArray[1], hollowPath)
+                    hollowList.add(hollow)
+                }
             } else {
                 //非圆形
                 val hollowArray = jsonObject.optJSONArray(HOLLOW_JSON_KEY)
@@ -253,6 +267,15 @@ class PictureModelFactory {
                     bottom = y
                 }
             }
+            return arrayOf(left, top, right, bottom)
+        }
+
+        private fun getPointsHollowForCircle(circelCenterX: Float, circelCenterY: Float, radius: Float): Array<Int> {
+            val left: Int = (circelCenterX - radius).toInt()
+            val top: Int = (circelCenterY - radius).toInt()
+            val right: Int = (circelCenterX + radius).toInt()
+            val bottom: Int = (circelCenterY + radius).toInt()
+
             return arrayOf(left, top, right, bottom)
         }
     }

@@ -260,21 +260,18 @@ class JigsawView(context: Context) : View(context) {
             val hollowY = hollowModel.hollowY
             val hollowWidth = hollowModel.width
             val hollowHeight = hollowModel.height
-            val hollowPath = hollowModel.path
 
-          //  if (hollowPath == null) {
-                canvas?.translate(hollowX.toFloat(), hollowY.toFloat())
-                //图片的中点位置以边框区域中点为标准。根据图片大小以及图片中心点边框区域中点的偏移距离和算出缩放前图片平移后左上角坐标
-                val pictureX = hollowWidth / 2 - bitmap.width / 2 + it.xToHollowCenter
-                val pictureY = hollowHeight / 2 - bitmap.height / 2 + it.yToHollowCenter
+            canvas?.translate(hollowX.toFloat(), hollowY.toFloat())
+            //图片的中点位置以边框区域中点为标准。根据图片大小以及图片中心点边框区域中点的偏移距离和算出缩放前图片平移后左上角坐标
+            val pictureX = hollowWidth / 2 - bitmap.width / 2 + it.xToHollowCenter
+            val pictureY = hollowHeight / 2 - bitmap.height / 2 + it.yToHollowCenter
 
-                mMatrix.postTranslate(pictureX.toFloat(), pictureY.toFloat())
-                mMatrix.postScale(scaleX, scaleY, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
-                mMatrix.postRotate(it.rotateDegree, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
+            mMatrix.postTranslate(pictureX.toFloat(), pictureY.toFloat())
+            mMatrix.postScale(scaleX, scaleY, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
+            mMatrix.postRotate(it.rotateDegree, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
 
-                canvas?.drawBitmap(bitmap, mMatrix, mPictureHalfAlphaPaint)
-                canvas?.restore()
-          //  }
+            canvas?.drawBitmap(bitmap, mMatrix, mPictureHalfAlphaPaint)
+            canvas?.restore()
         }
         mMatrix.reset()
     }
