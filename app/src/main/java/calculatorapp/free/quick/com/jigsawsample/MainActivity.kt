@@ -53,7 +53,6 @@ class MainActivity : AppCompatActivity() {
 
         jigsawView.initPictureModelList(jigsawModelList)
 
-
         gap.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 Log.d(TAG, "progress: $progress")

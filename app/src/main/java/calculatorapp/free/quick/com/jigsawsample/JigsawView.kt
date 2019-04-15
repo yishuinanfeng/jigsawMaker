@@ -20,6 +20,7 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
     private val mHeightWidthRatio: Float = heightWidthRatio
 
     companion object {
+        private val TAG = JigsawView::class.java.simpleName
         private const val GAP_MAX = 10
         private const val ROUND_RADIUS_MAX = 10
         private const val PICTURE_ANIMATION_DELAY = 100L
@@ -68,7 +69,8 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
     /**
      * 内边距
      */
-    private var gap = 5.0f
+    private var hollowGap = 0f
+    private var lastPicGap = hollowGap
     /**
      * 边框的圆角半径
      */
@@ -86,7 +88,7 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
 
 
     fun setGap(gap: Float) {
-        this.gap = gap * GAP_MAX
+        this.hollowGap = gap
         invalidate()
     }
 
@@ -124,7 +126,6 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
         setMeasuredDimension(width, height.toInt())
     }
 
-
     private fun drawPicture(canvas: Canvas?) {
 
         canvas?.let { canvas ->
@@ -152,7 +153,7 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
 
                 if (hollowPath == null) {
                     //规则图形，可以拖动边框并联动其他图形
-                    val rect = RectF(gap, gap, (hollowWidth - gap), (hollowHeight - gap))
+                    val rect = RectF(hollowGap* GAP_MAX, hollowGap* GAP_MAX, (hollowWidth - hollowGap* GAP_MAX), (hollowHeight - hollowGap* GAP_MAX))
                     //Path使用绝对值点的话，本行应该移动到canvas.clip后面
                     canvas.translate(hollowX.toFloat(), hollowY.toFloat())
 
@@ -186,7 +187,10 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
 
                 } else {
                     //不规则图形，不可以拖动边框并联动其他图形
+                    val scalePathGap = getPathScale()
+                    canvas.scale(scalePathGap, scalePathGap, (hollowX + hollowWidth / 2).toFloat(), (hollowY + hollowHeight / 2).toFloat())
                     canvas.clipPath(hollowPath)
+                    canvas.scale(1 / scalePathGap, 1 / scalePathGap, (hollowX + hollowWidth / 2).toFloat(), (hollowY + hollowHeight / 2).toFloat())
                     //Path使用绝对值点的话，本行应该移动到canvas.clip后面
                     canvas.translate(hollowX.toFloat(), hollowY.toFloat())
 
@@ -195,8 +199,8 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
                     val pictureY = hollowHeight / 2 - bitmap.height / 2 + it.yToHollowCenter
 
                     mMatrix.postTranslate(pictureX.toFloat(), pictureY.toFloat())
+                //    scalePicWithGap(hollowWidth, it, hollowHeight)
                     mMatrix.postScale(scaleX, scaleY, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
-
                     mMatrix.postRotate(it.rotateDegree, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
 
                     if (changePicMode && !it.isSelected && it == willChangeModel) {
@@ -210,10 +214,13 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
 
                     //绘制path
                     if (it.isSelected) {
+                        canvas.save()
+                        val scalePathGap = getPathScale()
+                        canvas.scale(scalePathGap, scalePathGap, (hollowX + hollowWidth / 2).toFloat(), (hollowY + hollowHeight / 2).toFloat())
                         canvas.drawPath(hollowPath, mHollowSelectPaint)
+                        canvas.restore()
                     }
                 }
-
 
             }
 
@@ -221,6 +228,24 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
         }
 
     }
+
+    private fun getPathScale(): Float {
+        return 1 - hollowGap *0.2f
+    }
+
+//    private fun scalePicWithGap(hollowWidth: Int, it: PictureModel, hollowHeight: Int) {
+//        val picScale: Float
+//        val scalePathGap = 1 - hollowGap
+//        if (scalePathGap - lastPicGap > 0) {
+//            picScale = scalePathGap - 0.5f
+//        } else {
+//            picScale = scalePathGap + 0.5f
+//        }
+//        lastPicGap = scalePathGap
+//
+//        mMatrix.postScale(picScale, picScale, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
+//        Log.d(TAG,"picScale: $picScale")
+//    }
 
     fun overTurnHorizontal() {
         mTouchPictureModel?.overTurnHorizontal()
@@ -271,6 +296,7 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
             val pictureY = hollowHeight / 2 - bitmap.height / 2 + it.yToHollowCenter
 
             mMatrix.postTranslate(pictureX.toFloat(), pictureY.toFloat())
+            //scalePicWithGap(hollowWidth, it, hollowHeight)
             mMatrix.postScale(scaleX, scaleY, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
             mMatrix.postRotate(it.rotateDegree, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
 
