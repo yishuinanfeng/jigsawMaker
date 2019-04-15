@@ -60,7 +60,7 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
      */
     private var isNeedDrawShadow = false
     private lateinit var runnable: Runnable
-    private val handler = DelayHandler()
+    private val longClickHandler = DelayHandler()
     /**
      * 交换图片模式
      */
@@ -129,13 +129,13 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
     private fun drawPicture(canvas: Canvas?) {
 
         canvas?.let { canvas ->
-            mPictureModelList?.forEach {
+            mPictureModelList.forEach {
 
-                if (it.isSelected && changePicMode) {
-                    Log.d("JigsawView", "setPictureXToHollowCenter: ${it.xToHollowCenter}")
-                    Log.d("JigsawView", "setPictureYToHollowCenter: ${it.yToHollowCenter}")
-                    return@forEach
-                }
+//                if (it.isSelected && !changePicMode) {
+//                    Log.d("JigsawView", "setPictureXToHollowCenter: ${it.xToHollowCenter}")
+//                    Log.d("JigsawView", "setPictureYToHollowCenter: ${it.yToHollowCenter}")
+//                    return@forEach
+//                }
                 canvas.save()
 
                 val scaleX = it.scaleX
@@ -152,28 +152,38 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
                 val hollowPath = hollowModel.path
 
                 if (hollowPath == null) {
-                    //规则图形，可以拖动边框并联动其他图形
-                    val rect = RectF(hollowGap* GAP_MAX, hollowGap* GAP_MAX, (hollowWidth - hollowGap* GAP_MAX), (hollowHeight - hollowGap* GAP_MAX))
-                    //Path使用绝对值点的话，本行应该移动到canvas.clip后面
-                    canvas.translate(hollowX.toFloat(), hollowY.toFloat())
+                    val rect = RectF(hollowGap * GAP_MAX, hollowGap * GAP_MAX, (hollowWidth - hollowGap * GAP_MAX), (hollowHeight - hollowGap * GAP_MAX))
 
-                    //图片的中点位置以边框区域中点为标准。根据图片大小以及图片中心点边框区域中点的偏移距离和算出缩放前图片平移后左上角坐标
-                    val pictureX = hollowWidth / 2 - bitmap.width / 2 + it.xToHollowCenter
-                    val pictureY = hollowHeight / 2 - bitmap.height / 2 + it.yToHollowCenter
+                    if (!it.isSelected || !changePicMode) {
+                        Log.d("JigsawView", "setPictureXToHollowCenter: ${it.xToHollowCenter}")
+                        Log.d("JigsawView", "setPictureYToHollowCenter: ${it.yToHollowCenter}")
 
-                    mMatrix.postTranslate(pictureX.toFloat(), pictureY.toFloat())
-                    mMatrix.postScale(scaleX, scaleY, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
 
-                    mMatrix.postRotate(it.rotateDegree, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
+                        //规则图形，可以拖动边框并联动其他图形
+                        //Path使用绝对值点的话，本行应该移动到canvas.clip后面
+                        canvas.translate(hollowX.toFloat(), hollowY.toFloat())
 
-                    val clipPath = Path()
-                    clipPath.addRoundRect(rect, hollowRoundRadius, hollowRoundRadius, Path.Direction.CW)
-                    canvas.clipPath(clipPath)
-                    if (changePicMode && !it.isSelected && it == willChangeModel) {
-                        canvas.drawBitmap(bitmap, mMatrix, mPictureHalfAlphaPaint)
-                    } else {
-                        canvas.drawBitmap(bitmap, mMatrix, null)
+                        //图片的中点位置以边框区域中点为标准。根据图片大小以及图片中心点边框区域中点的偏移距离和算出缩放前图片平移后左上角坐标
+                        val pictureX = hollowWidth / 2 - bitmap.width / 2 + it.xToHollowCenter
+                        val pictureY = hollowHeight / 2 - bitmap.height / 2 + it.yToHollowCenter
+
+                        mMatrix.postTranslate(pictureX.toFloat(), pictureY.toFloat())
+                        mMatrix.postScale(scaleX, scaleY, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
+
+                        mMatrix.postRotate(it.rotateDegree, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
+
+                        val clipPath = Path()
+                        clipPath.addRoundRect(rect, hollowRoundRadius, hollowRoundRadius, Path.Direction.CW)
+                        canvas.clipPath(clipPath)
+
+                        //准备交换的图片
+                        if (changePicMode && !it.isSelected && it == willChangeModel) {
+                            canvas.drawBitmap(bitmap, mMatrix, mPictureHalfAlphaPaint)
+                        } else {
+                            canvas.drawBitmap(bitmap, mMatrix, null)
+                        }
                     }
+
 
 //                    绘制path
 //                    drawHollow(canvas, hollowX, hollowY, rect, it.isSelected)
@@ -187,38 +197,43 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
 
                 } else {
                     //不规则图形，不可以拖动边框并联动其他图形
-                    val scalePathGap = getPathScale()
-                    canvas.scale(scalePathGap, scalePathGap, (hollowX + hollowWidth / 2).toFloat(), (hollowY + hollowHeight / 2).toFloat())
-                    canvas.clipPath(hollowPath)
-                    canvas.scale(1 / scalePathGap, 1 / scalePathGap, (hollowX + hollowWidth / 2).toFloat(), (hollowY + hollowHeight / 2).toFloat())
-                    //Path使用绝对值点的话，本行应该移动到canvas.clip后面
-                    canvas.translate(hollowX.toFloat(), hollowY.toFloat())
+                    if (!it.isSelected || !changePicMode) {
+                        val scalePathGap = getPathScale()
+                        canvas.scale(scalePathGap, scalePathGap, (hollowX + hollowWidth / 2).toFloat(), (hollowY + hollowHeight / 2).toFloat())
+                        canvas.clipPath(hollowPath)
+                        canvas.scale(1 / scalePathGap, 1 / scalePathGap, (hollowX + hollowWidth / 2).toFloat(), (hollowY + hollowHeight / 2).toFloat())
+                        //Path使用绝对值点的话，本行应该移动到canvas.clip后面
+                        canvas.translate(hollowX.toFloat(), hollowY.toFloat())
 
-                    //图片的中点位置以边框区域中点为标准。根据图片大小以及图片中心点边框区域中点的偏移距离和算出缩放前图片平移后左上角坐标
-                    val pictureX = hollowWidth / 2 - bitmap.width / 2 + it.xToHollowCenter
-                    val pictureY = hollowHeight / 2 - bitmap.height / 2 + it.yToHollowCenter
+                        //图片的中点位置以边框区域中点为标准。根据图片大小以及图片中心点边框区域中点的偏移距离和算出缩放前图片平移后左上角坐标
+                        val pictureX = hollowWidth / 2 - bitmap.width / 2 + it.xToHollowCenter
+                        val pictureY = hollowHeight / 2 - bitmap.height / 2 + it.yToHollowCenter
 
-                    mMatrix.postTranslate(pictureX.toFloat(), pictureY.toFloat())
-                //    scalePicWithGap(hollowWidth, it, hollowHeight)
-                    mMatrix.postScale(scaleX, scaleY, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
-                    mMatrix.postRotate(it.rotateDegree, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
+                        mMatrix.postTranslate(pictureX.toFloat(), pictureY.toFloat())
+                        //    scalePicWithGap(hollowWidth, it, hollowHeight)
+                        mMatrix.postScale(scaleX, scaleY, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
+                        mMatrix.postRotate(it.rotateDegree, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
 
-                    if (changePicMode && !it.isSelected && it == willChangeModel) {
-                        canvas.drawBitmap(bitmap, mMatrix, mPictureHalfAlphaPaint)
-                    } else {
-                        canvas.drawBitmap(bitmap, mMatrix, null)
+                        //准备交换的图片
+                        if (changePicMode && !it.isSelected && it == willChangeModel) {
+                            canvas.drawBitmap(bitmap, mMatrix, mPictureHalfAlphaPaint)
+                        } else {
+                            canvas.drawBitmap(bitmap, mMatrix, null)
+                        }
                     }
 
                     mMatrix.reset()
                     canvas.restore()
 
                     //绘制path
+                    Log.d(TAG, "isSelected : ${it.isSelected}")
                     if (it.isSelected) {
                         canvas.save()
-                        val scalePathGap = getPathScale()
-                        canvas.scale(scalePathGap, scalePathGap, (hollowX + hollowWidth / 2).toFloat(), (hollowY + hollowHeight / 2).toFloat())
+                        val scalePath = getPathScale()
+                        canvas.scale(scalePath, scalePath, (hollowX + hollowWidth / 2).toFloat(), (hollowY + hollowHeight / 2).toFloat())
                         canvas.drawPath(hollowPath, mHollowSelectPaint)
                         canvas.restore()
+
                     }
                 }
 
@@ -230,7 +245,7 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
     }
 
     private fun getPathScale(): Float {
-        return 1 - hollowGap *0.2f
+        return 1 - hollowGap * 0.2f
     }
 
 //    private fun scalePicWithGap(hollowWidth: Int, it: PictureModel, hollowHeight: Int) {
@@ -350,7 +365,7 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
 
                 val tempModel = getTouchPicModel(event)
                 //长按选中
-                handler.postDelayed({
+                longClickHandler.postDelayed({
                     mTouchPictureModel = tempModel
                     selectPictureModel()
                     changePicMode = true
@@ -380,7 +395,7 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
             MotionEvent.ACTION_MOVE -> {
                 val distanceFromDownPoint = getDisFromDownPoint(event)
                 if (distanceFromDownPoint > viewConfig.scaledTouchSlop) {
-                    handler.removeCallbacksAndMessages(null)
+                    longClickHandler.removeCallbacksAndMessages(null)
                 }
                 isNeedDrawShadow = true
                 when (event.pointerCount) {
@@ -450,7 +465,7 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                handler.removeCallbacksAndMessages(null)
+                longClickHandler.removeCallbacksAndMessages(null)
 
                 //交换图片
                 if (changePicMode && mTouchPictureModel != null && willChangeModel != null && mTouchPictureModel != willChangeModel) {
