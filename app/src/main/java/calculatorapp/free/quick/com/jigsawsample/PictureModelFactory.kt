@@ -20,22 +20,31 @@ class PictureModelFactory {
         private const val HOLLOW_JSON_KEY = "hollows"
         private const val CIRCLE_JSON_KEY = "circles"
         private const val CONTROL_JSON_KEY = "controls"
-        private const val RATIO_JSON_KEY = "ratio"
+        private const val WIDTH_JSON_KEY = "width"
+        private const val HEIGHT_JSON_KEY = "height"
     }
 
     private var jsonHollow: JSONObject? = null
 
     fun getJigsawHeightWidthRatio(context: Context, @RawRes resId: Int): Float {
         initJsonHollowIfNeed(context, resId)
-        val ratio = jsonHollow!!.optDouble(RATIO_JSON_KEY)
+        val width = jsonHollow!!.optDouble(WIDTH_JSON_KEY)
+        val height = jsonHollow!!.optDouble(HEIGHT_JSON_KEY)
+        val ratio = height/width
         return ratio.toFloat()
     }
 
+    /**
+     * @param standLength:单位长度
+     */
     fun getPictureModelList(context: Context, bitmapList: List<Bitmap>, @RawRes resId: Int, standLength: Int): List<PictureModel> {
         val pictureList = mutableListOf<PictureModel>()
         initJsonHollowIfNeed(context, resId)
         val isRegular = jsonHollow!!.optBoolean(IS_REGULAR_JSON_KEY)
-        val hollowList = getHollowListByJsonFile(standLength, jsonHollow!!, isRegular)
+        val width = jsonHollow!!.optDouble(WIDTH_JSON_KEY)
+        val height = jsonHollow!!.optDouble(HEIGHT_JSON_KEY)
+        val ratio = height/width
+        val hollowList = getHollowListByJsonFile(standLength, jsonHollow!!, isRegular, ratio.toFloat())
         hollowList.forEachIndexed { index, hollowModel ->
             val pictureModel = PictureModel(bitmapList[index], hollowModel)
             pictureList.add(pictureModel)
@@ -194,18 +203,19 @@ class PictureModelFactory {
         }
     }
 
-    private fun getHollowListByJsonFile(standLength: Int, jsonObject: JSONObject, regular: Boolean): List<HollowModel> {
+    private fun getHollowListByJsonFile(widthStandLength: Int, jsonObject: JSONObject, regular: Boolean, ratio: Float): List<HollowModel> {
         val hollowList = mutableListOf<HollowModel>()
 
         val circleArray = jsonObject.optJSONArray(CIRCLE_JSON_KEY)
+        val heightStandLength = widthStandLength * ratio
         if (circleArray != null) {
             for (i in 0 until circleArray.length()) {
                 val circleLocationStr = circleArray[i] as? String
                 val positionArrayForOneCircle = circleLocationStr?.split(" ")
                 //这里使用“!!”是因为模板为自己提供，如果为空说明模板有错
-                val circleCenterX = positionArrayForOneCircle!![0].split(",")[0].toFloat() * standLength
-                val circleCenterY = positionArrayForOneCircle[0].split(",")[1].toFloat() * standLength
-                val radius = positionArrayForOneCircle[1].toFloat() * standLength
+                val circleCenterX = positionArrayForOneCircle!![0].split(",")[0].toFloat() * widthStandLength
+                val circleCenterY = positionArrayForOneCircle[0].split(",")[1].toFloat() * heightStandLength
+                val radius = positionArrayForOneCircle[1].toFloat() * widthStandLength
                 val hollowPath = Path()
                 hollowPath.addCircle(circleCenterX, circleCenterY, radius, Path.Direction.CW)
                 //通过hollowLocationStr求出外接矩形，将外接矩形数据写入HollowModel
@@ -227,8 +237,8 @@ class PictureModelFactory {
 
                     positionArrayForOneHollow?.forEach { p ->
                         val xAndY = p.split(",")
-                        val x = xAndY[0].toFloat() * standLength
-                        val y = xAndY[1].toFloat() * standLength
+                        val x = xAndY[0].toFloat() * widthStandLength
+                        val y = xAndY[1].toFloat() * heightStandLength
                         val point = Point(x.toInt(), y.toInt())
                         hollowPointArray.add(point)
                     }

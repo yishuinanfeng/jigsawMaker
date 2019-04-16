@@ -10,22 +10,31 @@ import kotlinx.android.synthetic.main.activity_main.*
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
 
 
 class MainActivity : AppCompatActivity() {
-    private var  isJigsawInit = false
-    private lateinit var jigsawView:JigsawView
-    private val picFactory =  PictureModelFactory()
+    private var isJigsawInit = false
+    private lateinit var jigsawView: JigsawView
+    private val picFactory = PictureModelFactory()
 
     companion object {
         private val TAG = MainActivity::class.java.simpleName
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
-        if (!isJigsawInit){
-            val jigsawWidth = jigsawView.width
-            addJigsaw(jigsawWidth)
+        //拿到jigsawView的宽度
+        val containerWidth = flContainer.width
+        val containerHeight = flContainer.height
+        val heightWidthRatio = picFactory.getJigsawHeightWidthRatio(this, R.raw.hollow)
+
+        val lp = getCenterJigsawLP(containerWidth,containerHeight,heightWidthRatio)
+        if (!isJigsawInit) {
+
+            initJigsaw(lp)
             isJigsawInit = true
         }
     }
@@ -34,14 +43,24 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-      //  val jigsawModelList = initPictureList()
-        val heightWidthRatio = picFactory.getJigsawHeightWidthRatio(this,R.raw.hollow)
-        jigsawView = JigsawView(this,heightWidthRatio)
-        flContainer.addView(jigsawView, 0)
+    }
+
+    /**
+     *
+     */
+    private fun getCenterJigsawLP(width: Int, height: Int, JigsawHeightWidthRatio: Float): FrameLayout.LayoutParams {
+        val containerHeightWidthRatio = height / width
+        return if (containerHeightWidthRatio < JigsawHeightWidthRatio) {
+            val resultWidth = height / JigsawHeightWidthRatio
+            FrameLayout.LayoutParams(resultWidth.toInt(), height)
+        } else {
+            val resultHeight = width * JigsawHeightWidthRatio
+            FrameLayout.LayoutParams(width,resultHeight.toInt())
+        }
 
     }
 
-    private fun addJigsaw(jigsawWidth: Int) {
+    private fun initJigsaw(lp:FrameLayout.LayoutParams) {
         val bitmap1 = BitmapFactory.decodeResource(resources, R.drawable.aa)
         val bitmap2 = BitmapFactory.decodeResource(resources, R.drawable.bb)
         val bitmaList = mutableListOf<Bitmap>()
@@ -49,9 +68,12 @@ class MainActivity : AppCompatActivity() {
         bitmaList.add(bitmap2)
         bitmaList.add(bitmap1)
         bitmaList.add(bitmap2)
-        val jigsawModelList = picFactory.getPictureModelList(this, bitmaList, R.raw.hollow, jigsawWidth)
-
+        val jigsawModelList = picFactory.getPictureModelList(this, bitmaList, R.raw.hollow, lp.width)
+        jigsawView = JigsawView(this)
+        lp.gravity = Gravity.CENTER
+        jigsawView.layoutParams = lp
         jigsawView.initPictureModelList(jigsawModelList)
+        flContainer.addView(jigsawView)
 
         gap.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -116,10 +138,10 @@ class MainActivity : AppCompatActivity() {
             imgResult.setImageBitmap(bitmap)
             jigsawView.visibility = View.GONE
 
-    //            val bStream = ByteArrayOutputStream()
-    //            bitmap.compress(Bitmap.CompressFormat.PNG, 100, bStream)
-    //            val byteArray = bStream.toByteArray()
-    //            ResultActivity.gotoActivity(this,byteArray)
+            //            val bStream = ByteArrayOutputStream()
+            //            bitmap.compress(Bitmap.CompressFormat.PNG, 100, bStream)
+            //            val byteArray = bStream.toByteArray()
+            //            ResultActivity.gotoActivity(this,byteArray)
         }
     }
 

@@ -16,8 +16,8 @@ import android.view.ViewConfiguration
  * 注意：1.暂时不支持在xml文件中定义 2.布局不支持wrap content
  * @param heightWidthRatio 高度比宽度
  */
-class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
-    private val mHeightWidthRatio: Float = heightWidthRatio
+class JigsawView(context: Context) : View(context) {
+//    private val mHeightWidthRatio: Float = heightWidthRatio
 
     companion object {
         private val TAG = JigsawView::class.java.simpleName
@@ -132,11 +132,11 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
         drawPicture(canvas)
     }
 
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val width = MeasureSpec.getSize(widthMeasureSpec)
-        val height = width * mHeightWidthRatio
-        setMeasuredDimension(width, height.toInt())
-    }
+//    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+//        val width = MeasureSpec.getSize(widthMeasureSpec)
+//        val height = width * mHeightWidthRatio
+//        setMeasuredDimension(width, height.toInt())
+//    }
 
     private fun drawPicture(canvas: Canvas?) {
 
