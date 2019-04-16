@@ -9,9 +9,9 @@ import android.support.annotation.IntDef
  * 功能描述：
  * @param path:用于canvas进行clip的路径
  */
-data class HollowModel(var hollowX: Int,var hollowY: Int,var initWidth: Int,var initHeight: Int,val path:Path? = null) {
-    var width:Int = initWidth
-    var height:Int = initHeight
+data class HollowModel(var hollowX: Float,var hollowY: Float,var initWidth: Float,var initHeight: Float,val path:Path? = null) {
+    var width:Float = initWidth
+    var height:Float = initHeight
 
     companion object {
         /**

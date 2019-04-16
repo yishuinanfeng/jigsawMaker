@@ -3,6 +3,7 @@ package calculatorapp.free.quick.com.jigsawsample
 import android.animation.ObjectAnimator
 import android.graphics.Bitmap
 import android.graphics.Rect
+import android.graphics.RectF
 import android.util.Log
 import android.util.SparseArray
 import android.view.MotionEvent
@@ -110,7 +111,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
     /**
      * 得到在固定的显示尺寸限定得Bitmap显示centerCrop效果的缩放比例(scale为图片和边框宽高比最大的值)
      */
-    private fun getCenterPicScale(bitmap: Bitmap, width: Int, height: Int): Float {
+    private fun getCenterPicScale(bitmap: Bitmap, width: Float, height: Float): Float {
         val widthBmp = bitmap.width
         val heightBmp = bitmap.height
         val widthScale = width.toFloat() / widthBmp.toFloat()
@@ -127,18 +128,18 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
      * 刷新是否触摸到边框状态（即边框可拖动）
      */
     fun refreshIsTouchHollowState(event: MotionEvent) {
-        val x = event.x.toInt()
-        val y = event.y.toInt()
+        val x = event.x
+        val y = event.y
 
         val hollowX = hollowModel.hollowX
         val hollowY = hollowModel.hollowY
         val hollowWidth = hollowModel.width
         val hollowHeight = hollowModel.height
 
-        val rectLeft = Rect(hollowX, hollowY, hollowX + HOLLOW_TOUCH_WIDTH, hollowY + hollowHeight)
-        val rectTop = Rect(hollowX, hollowY, hollowX + hollowWidth, hollowY + HOLLOW_TOUCH_WIDTH)
-        val rectRight = Rect(hollowX + hollowWidth - HOLLOW_TOUCH_WIDTH, hollowY, hollowX + hollowWidth, hollowY + hollowHeight)
-        val rectBottom = Rect(hollowX, hollowY + hollowHeight - HOLLOW_TOUCH_WIDTH, hollowX + hollowWidth, hollowY + hollowHeight)
+        val rectLeft = RectF(hollowX, hollowY, hollowX + HOLLOW_TOUCH_WIDTH, hollowY + hollowHeight)
+        val rectTop = RectF(hollowX, hollowY, hollowX + hollowWidth, hollowY + HOLLOW_TOUCH_WIDTH)
+        val rectRight = RectF(hollowX + hollowWidth - HOLLOW_TOUCH_WIDTH, hollowY, hollowX + hollowWidth, hollowY + hollowHeight)
+        val rectBottom = RectF(hollowX, hollowY + hollowHeight - HOLLOW_TOUCH_WIDTH, hollowX + hollowWidth, hollowY + hollowHeight)
 
         //点在矩形区域中
         if (rectLeft.contains(x, y) && mEffectPictureModel.get(HollowModel.LEFT) != null) {

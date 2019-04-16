@@ -134,12 +134,12 @@ class MainActivity : AppCompatActivity() {
     private fun initPictureList(): MutableList<PictureModel> {
         val jigsawModelList = mutableListOf<PictureModel>()
 
-        val hollowModel1 = HollowModel(0, 0, 400, 500)
-        val hollowModel2 = HollowModel(0, 500, 400, 500)
-        val hollowModel3 = HollowModel(400, 0, 400, 500)
-        val hollowModel4 = HollowModel(400, 500, 400, 500)
-        val hollowModel5 = HollowModel(800, 0, 400, 500)
-        val hollowModel6 = HollowModel(800, 500, 400, 500)
+        val hollowModel1 = HollowModel(0f, 0f, 400f, 500f)
+        val hollowModel2 = HollowModel(0f, 500f, 400f, 500f)
+        val hollowModel3 = HollowModel(400f, 0f, 400f, 500f)
+        val hollowModel4 = HollowModel(400f, 500f, 400f, 500f)
+        val hollowModel5 = HollowModel(800f, 0f, 400f, 500f)
+        val hollowModel6 = HollowModel(800f, 500f, 400f, 500f)
 
         val bitmap1 = BitmapFactory.decodeResource(resources, R.drawable.aa)
         val bitmap2 = BitmapFactory.decodeResource(resources, R.drawable.bb)

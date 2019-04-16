@@ -268,38 +268,38 @@ class PictureModelFactory {
     /**
      * 拿到各个顶点对应的图形的外接矩形的坐标点
      */
-    private fun getPointsHollow(hollowPointArray: MutableList<Point>): Array<Int> {
-        var left: Int = -1
-        var top: Int = -1
-        var right: Int = -1
-        var bottom: Int = -1
+    private fun getPointsHollow(hollowPointArray: MutableList<Point>): Array<Float> {
+        var left: Float = -1f
+        var top: Float = -1f
+        var right: Float = -1f
+        var bottom: Float = -1f
         hollowPointArray.forEach { point ->
             val x = point.x
             val y = point.y
-            if (x < left || left == -1) {
-                left = x
+            if (x < left || left == -1f) {
+                left = x.toFloat()
             }
 
-            if (x > right || right == -1) {
-                right = x
+            if (x > right || right == -1f) {
+                right = x.toFloat()
             }
 
-            if (y < top || top == -1) {
-                top = y
+            if (y < top || top == -1f) {
+                top = y.toFloat()
             }
 
-            if (y > bottom || bottom == -1) {
-                bottom = y
+            if (y > bottom || bottom == -1f) {
+                bottom = y.toFloat()
             }
         }
         return arrayOf(left, top, right, bottom)
     }
 
-    private fun getPointsHollowForCircle(circleCenterX: Float, circleCenterY: Float, radius: Float): Array<Int> {
-        val left: Int = (circleCenterX - radius).toInt()
-        val top: Int = (circleCenterY - radius).toInt()
-        val right: Int = (circleCenterX + radius).toInt()
-        val bottom: Int = (circleCenterY + radius).toInt()
+    private fun getPointsHollowForCircle(circleCenterX: Float, circleCenterY: Float, radius: Float): Array<Float> {
+        val left: Float = (circleCenterX - radius)
+        val top: Float = (circleCenterY - radius)
+        val right: Float = (circleCenterX + radius)
+        val bottom: Float = (circleCenterY + radius)
 
         return arrayOf(left, top, right, bottom)
     }

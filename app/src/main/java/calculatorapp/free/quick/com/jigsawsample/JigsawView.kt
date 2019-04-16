@@ -21,7 +21,7 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
 
     companion object {
         private val TAG = JigsawView::class.java.simpleName
-        private const val GAP_MAX = 10
+        private const val GAP_MAX = 20
         private const val ROUND_RADIUS_MAX = 10
         private const val PICTURE_ANIMATION_DELAY = 100L
         private const val SELECT_DRAG_RECT_LENGTH = 150
@@ -89,7 +89,18 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
 
 
     fun setGap(gap: Float) {
-        this.hollowGap = gap
+        val differGap = gap  - lastPicGap
+        mPictureModelList.forEach {
+            val hollow = it.hollowModel
+            hollow.hollowX = hollow.hollowX + differGap * GAP_MAX
+            hollow.hollowY = hollow.hollowY + differGap * GAP_MAX
+            hollow.width = hollow.width - differGap * GAP_MAX
+            hollow.height = hollow.height - differGap * GAP_MAX
+
+            if (it.isSelected)
+            Log.d(TAG,"hollow hollowX:${hollow.hollowX}, hollowY:${hollow.hollowY},hollow.width:${hollow.width},hollow.height:${hollow.height}")
+        }
+        lastPicGap = gap
         invalidate()
     }
 
@@ -153,7 +164,8 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
                 val hollowPath = hollowModel.path
 
                 if (hollowPath == null) {
-                    val rect = RectF(hollowGap * GAP_MAX, hollowGap * GAP_MAX, (hollowWidth - hollowGap * GAP_MAX), (hollowHeight - hollowGap * GAP_MAX))
+                    //  val rect = RectF(hollowGap * GAP_MAX, hollowGap * GAP_MAX, (hollowWidth - hollowGap * GAP_MAX), (hollowHeight - hollowGap * GAP_MAX))
+                    val rect = RectF(0f, 0f, hollowWidth, hollowHeight)
 
                     if (!it.isSelected || !changePicMode) {
                         Log.d("JigsawView", "setPictureXToHollowCenter: ${it.xToHollowCenter}")
@@ -162,16 +174,16 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
 
                         //规则图形，可以拖动边框并联动其他图形
                         //Path使用绝对值点的话，本行应该移动到canvas.clip后面
-                        canvas.translate(hollowX.toFloat(), hollowY.toFloat())
+                        canvas.translate(hollowX, hollowY)
 
                         //图片的中点位置以边框区域中点为标准。根据图片大小以及图片中心点边框区域中点的偏移距离和算出缩放前图片平移后左上角坐标
                         val pictureX = hollowWidth / 2 - bitmap.width / 2 + it.xToHollowCenter
                         val pictureY = hollowHeight / 2 - bitmap.height / 2 + it.yToHollowCenter
 
-                        mMatrix.postTranslate(pictureX.toFloat(), pictureY.toFloat())
-                        mMatrix.postScale(scaleX, scaleY, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
+                        mMatrix.postTranslate(pictureX, pictureY)
+                        mMatrix.postScale(scaleX, scaleY, (hollowWidth / 2 + it.xToHollowCenter), (hollowHeight / 2 + it.yToHollowCenter))
 
-                        mMatrix.postRotate(it.rotateDegree, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
+                        mMatrix.postRotate(it.rotateDegree, (hollowWidth / 2 + it.xToHollowCenter), (hollowHeight / 2 + it.yToHollowCenter))
 
                         val clipPath = Path()
                         clipPath.addRoundRect(rect, hollowRoundRadius, hollowRoundRadius, Path.Direction.CW)
@@ -185,49 +197,7 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
                         }
                     }
 
-
-//                    绘制path
-//                    drawHollow(canvas, hollowX, hollowY, rect, it.isSelected)
-
-                    if (it.isSelected) {
-                        canvas.drawRoundRect(rect, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
-
-                        //todo 根据PictureModel的mCanDragDirectionList画出对应的可拖拽矩形标志
-                        val canDragList = it.getCanDragList()
-                        canDragList.forEach { direction ->
-                            when (direction) {
-                                HollowModel.LEFT -> {
-                                    val rectLeft = RectF((-SELECT_DRAG_RECT_WIDTH / 2).toFloat()
-                                            , (it.hollowModel.height / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
-                                            , (SELECT_DRAG_RECT_WIDTH / 2).toFloat()
-                                            , (it.hollowModel.height / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat())
-                                    canvas.drawRoundRect(rectLeft, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
-                                }
-                                HollowModel.TOP -> {
-                                    val rectLeft = RectF((it.hollowModel.width / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
-                                            , (-SELECT_DRAG_RECT_WIDTH / 2).toFloat()
-                                            , (it.hollowModel.width / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat()
-                                            , (SELECT_DRAG_RECT_WIDTH / 2).toFloat())
-                                    canvas.drawRoundRect(rectLeft, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
-                                }
-                                HollowModel.RIGHT -> {
-                                    val rectLeft = RectF((it.hollowModel.width - SELECT_DRAG_RECT_WIDTH / 2).toFloat()
-                                            , (it.hollowModel.height / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
-                                            , (it.hollowModel.width + SELECT_DRAG_RECT_WIDTH / 2).toFloat()
-                                            , (it.hollowModel.height / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat())
-                                    canvas.drawRoundRect(rectLeft, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
-
-                                }
-                                HollowModel.BOTTOM -> {
-                                    val rectLeft = RectF((it.hollowModel.width / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
-                                            , (it.hollowModel.height-SELECT_DRAG_RECT_WIDTH / 2).toFloat()
-                                            , (it.hollowModel.width / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat()
-                                            , (it.hollowModel.height + SELECT_DRAG_RECT_WIDTH / 2).toFloat())
-                                    canvas.drawRoundRect(rectLeft, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
-                                }
-                            }
-                        }
-                    }
+                    drawHollowWithDragSign(it, canvas, rect)
 
                     mMatrix.reset()
                     canvas.restore()
@@ -236,7 +206,7 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
                     //不规则图形，不可以拖动边框并联动其他图形
                     if (!it.isSelected || !changePicMode) {
                         val scalePathGap = getPathScale()
-                        canvas.scale(scalePathGap, scalePathGap, (hollowX + hollowWidth / 2).toFloat(), (hollowY + hollowHeight / 2).toFloat())
+                        canvas.scale(scalePathGap, scalePathGap, (hollowX + hollowWidth / 2), (hollowY + hollowHeight / 2))
                         canvas.clipPath(hollowPath)
                         canvas.scale(1 / scalePathGap, 1 / scalePathGap, (hollowX + hollowWidth / 2).toFloat(), (hollowY + hollowHeight / 2).toFloat())
                         //Path使用绝对值点的话，本行应该移动到canvas.clip后面
@@ -281,24 +251,52 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
 
     }
 
-    private fun getPathScale(): Float {
-        return 1 - hollowGap * 0.2f
+    fun drawHollowWithDragSign(it: PictureModel, canvas: Canvas, rect: RectF) {
+        if (it.isSelected) {
+            canvas.drawRoundRect(rect, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
+
+            //根据PictureModel的mCanDragDirectionList画出对应的可拖拽矩形标志
+            val canDragList = it.getCanDragList()
+            canDragList.forEach { direction ->
+                when (direction) {
+                    HollowModel.LEFT -> {
+                        val rectLeft = RectF((-SELECT_DRAG_RECT_WIDTH / 2).toFloat()
+                                , (it.hollowModel.height / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
+                                , (SELECT_DRAG_RECT_WIDTH / 2).toFloat()
+                                , (it.hollowModel.height / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat())
+                        canvas.drawRoundRect(rectLeft, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
+                    }
+                    HollowModel.TOP -> {
+                        val rectLeft = RectF((it.hollowModel.width / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
+                                , (-SELECT_DRAG_RECT_WIDTH / 2).toFloat()
+                                , (it.hollowModel.width / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat()
+                                , (SELECT_DRAG_RECT_WIDTH / 2).toFloat())
+                        canvas.drawRoundRect(rectLeft, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
+                    }
+                    HollowModel.RIGHT -> {
+                        val rectLeft = RectF((it.hollowModel.width - SELECT_DRAG_RECT_WIDTH / 2).toFloat()
+                                , (it.hollowModel.height / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
+                                , (it.hollowModel.width + SELECT_DRAG_RECT_WIDTH / 2).toFloat()
+                                , (it.hollowModel.height / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat())
+                        canvas.drawRoundRect(rectLeft, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
+
+                    }
+                    HollowModel.BOTTOM -> {
+                        val rectLeft = RectF((it.hollowModel.width / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
+                                , (it.hollowModel.height - SELECT_DRAG_RECT_WIDTH / 2).toFloat()
+                                , (it.hollowModel.width / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat()
+                                , (it.hollowModel.height + SELECT_DRAG_RECT_WIDTH / 2).toFloat())
+                        canvas.drawRoundRect(rectLeft, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
+                    }
+                }
+            }
+        }
     }
 
-//    private fun scalePicWithGap(hollowWidth: Int, it: PictureModel, hollowHeight: Int) {
-//        val picScale: Float
-//        val scalePathGap = 1 - hollowGap
-//        if (scalePathGap - lastPicGap > 0) {
-//            picScale = scalePathGap - 0.5f
-//        } else {
-//            picScale = scalePathGap + 0.5f
-//        }
-//        lastPicGap = scalePathGap
-//
-//        mMatrix.postScale(picScale, picScale, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
-//        Log.d(TAG,"picScale: $picScale")
-//    }
-
+    private fun getPathScale(): Float {
+        return 1 - lastPicGap * 0.2f
+    }
+    
     fun overTurnHorizontal() {
         mTouchPictureModel?.overTurnHorizontal()
         invalidate()
@@ -579,8 +577,8 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
     private fun getTouchPicModel(event: MotionEvent): PictureModel? {
         when (event.pointerCount) {
             1 -> {
-                val x = event.x.toInt()
-                val y = event.y.toInt()
+                val x = event.x
+                val y = event.y
                 Log.d("JigsawView", "getTouchPicModel x:$x y:$y")
                 for (picModel in mPictureModelList) {
                     val hollowX = picModel.hollowModel.hollowX
@@ -588,7 +586,7 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
                     val hollowWidth = picModel.hollowModel.width
                     val hollowHeight = picModel.hollowModel.height
 
-                    val rect = Rect(hollowX, hollowY, hollowX + hollowWidth, hollowY + hollowHeight)
+                    val rect = RectF(hollowX, hollowY, hollowX + hollowWidth, hollowY + hollowHeight)
                     //点在矩形区域中
                     if (rect.contains(x, y)) {
                         return picModel
@@ -596,17 +594,17 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
                 }
             }
             2 -> {
-                val x0 = event.getX(0).toInt()
-                val y0 = event.getY(0).toInt()
-                val x1 = event.getX(1).toInt()
-                val y1 = event.getY(1).toInt()
+                val x0 = event.getX(0)
+                val y0 = event.getY(0)
+                val x1 = event.getX(1)
+                val y1 = event.getY(1)
                 for (picModel in mPictureModelList) {
                     val hollowX = picModel.hollowModel.hollowX
                     val hollowY = picModel.hollowModel.hollowY
                     val hollowWidth = picModel.hollowModel.width
                     val hollowHeight = picModel.hollowModel.height
 
-                    val rect = Rect(hollowX, hollowY, hollowX + hollowWidth, hollowY + hollowHeight)
+                    val rect = RectF(hollowX, hollowY, hollowX + hollowWidth, hollowY + hollowHeight)
                     //两个点都在该矩形区域
                     if (rect.contains(x0, y0) || rect.contains(x1, y1)) {
                         return picModel
