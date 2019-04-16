@@ -18,7 +18,7 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
 
     companion object {
         private val TAG = PictureModel::class.java.simpleName
-        private const val HOLLOW_TOUCH_WIDTH = 100
+        private const val HOLLOW_TOUCH_WIDTH = 50
         private const val HOLLOW_SCALE_UPPER_LIMIT = 2
         private const val HOLLOW_TOUCH_LOWER_LIMIT = 100
         private const val PICTURE_ANIMATION_DELAY = 100L
@@ -136,10 +136,10 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
         val hollowWidth = hollowModel.width
         val hollowHeight = hollowModel.height
 
-        val rectLeft = RectF(hollowX, hollowY, hollowX + HOLLOW_TOUCH_WIDTH, hollowY + hollowHeight)
-        val rectTop = RectF(hollowX, hollowY, hollowX + hollowWidth, hollowY + HOLLOW_TOUCH_WIDTH)
-        val rectRight = RectF(hollowX + hollowWidth - HOLLOW_TOUCH_WIDTH, hollowY, hollowX + hollowWidth, hollowY + hollowHeight)
-        val rectBottom = RectF(hollowX, hollowY + hollowHeight - HOLLOW_TOUCH_WIDTH, hollowX + hollowWidth, hollowY + hollowHeight)
+        val rectLeft = RectF(hollowX - HOLLOW_TOUCH_WIDTH, hollowY, hollowX + HOLLOW_TOUCH_WIDTH, hollowY + hollowHeight)
+        val rectTop = RectF(hollowX, hollowY - HOLLOW_TOUCH_WIDTH, hollowX + hollowWidth, hollowY + HOLLOW_TOUCH_WIDTH)
+        val rectRight = RectF(hollowX + hollowWidth - HOLLOW_TOUCH_WIDTH, hollowY, hollowX + hollowWidth + HOLLOW_TOUCH_WIDTH, hollowY + hollowHeight)
+        val rectBottom = RectF(hollowX, hollowY + hollowHeight - HOLLOW_TOUCH_WIDTH, hollowX + hollowWidth, hollowY + hollowHeight + HOLLOW_TOUCH_WIDTH)
 
         //点在矩形区域中
         if (rectLeft.contains(x, y) && mEffectPictureModel.get(HollowModel.LEFT) != null) {

@@ -390,7 +390,6 @@ class JigsawView(context: Context) : View(context) {
         mLastY = event.y
     }
 
-
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         when (event?.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
