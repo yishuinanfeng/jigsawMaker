@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
-        //拿到jigsawView的宽度
+        //显示区的宽高
         val containerWidth = flContainer.width
         val containerHeight = flContainer.height
         val heightWidthRatio = picFactory.getJigsawHeightWidthRatio(this, R.raw.hollow)

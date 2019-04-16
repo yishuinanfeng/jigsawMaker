@@ -197,10 +197,11 @@ class JigsawView(context: Context) : View(context) {
                         }
                     }
 
-                    drawHollowWithDragSign(it, canvas, rect)
 
                     mMatrix.reset()
                     canvas.restore()
+
+                    // drawHollowWithDragSign(it, canvas)
 
                 } else {
                     //不规则图形，不可以拖动边框并联动其他图形
@@ -246,13 +247,19 @@ class JigsawView(context: Context) : View(context) {
 
             }
 
+            mTouchPictureModel?.let {
+                drawHollowWithDragSign(it, canvas)
+            }
+
             drawPictureShadow(canvas)
         }
 
     }
 
-    fun drawHollowWithDragSign(it: PictureModel, canvas: Canvas, rect: RectF) {
+    private fun drawHollowWithDragSign(it: PictureModel, canvas: Canvas) {
         if (it.isSelected) {
+            val rect = RectF(it.hollowModel.hollowX, it.hollowModel.hollowY, it.hollowModel.hollowX + it.hollowModel.width
+                    , it.hollowModel.hollowY + it.hollowModel.height)
             canvas.drawRoundRect(rect, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
 
             //根据PictureModel的mCanDragDirectionList画出对应的可拖拽矩形标志
@@ -260,32 +267,32 @@ class JigsawView(context: Context) : View(context) {
             canDragList.forEach { direction ->
                 when (direction) {
                     HollowModel.LEFT -> {
-                        val rectLeft = RectF((-SELECT_DRAG_RECT_WIDTH / 2).toFloat()
-                                , (it.hollowModel.height / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
-                                , (SELECT_DRAG_RECT_WIDTH / 2).toFloat()
-                                , (it.hollowModel.height / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat())
+                        val rectLeft = RectF((it.hollowModel.hollowX - SELECT_DRAG_RECT_WIDTH / 2).toFloat()
+                                , (it.hollowModel.hollowY + it.hollowModel.height / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
+                                , (it.hollowModel.hollowY + it.hollowModel.hollowX + SELECT_DRAG_RECT_WIDTH / 2).toFloat()
+                                , (it.hollowModel.hollowY + it.hollowModel.height / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat())
                         canvas.drawRoundRect(rectLeft, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
                     }
                     HollowModel.TOP -> {
-                        val rectLeft = RectF((it.hollowModel.width / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
-                                , (-SELECT_DRAG_RECT_WIDTH / 2).toFloat()
-                                , (it.hollowModel.width / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat()
-                                , (SELECT_DRAG_RECT_WIDTH / 2).toFloat())
+                        val rectLeft = RectF((it.hollowModel.hollowX + it.hollowModel.width / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
+                                , (it.hollowModel.hollowY - SELECT_DRAG_RECT_WIDTH / 2).toFloat()
+                                , (it.hollowModel.hollowX + it.hollowModel.width / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat()
+                                , (it.hollowModel.hollowY + SELECT_DRAG_RECT_WIDTH / 2).toFloat())
                         canvas.drawRoundRect(rectLeft, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
                     }
                     HollowModel.RIGHT -> {
-                        val rectLeft = RectF((it.hollowModel.width - SELECT_DRAG_RECT_WIDTH / 2).toFloat()
-                                , (it.hollowModel.height / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
-                                , (it.hollowModel.width + SELECT_DRAG_RECT_WIDTH / 2).toFloat()
-                                , (it.hollowModel.height / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat())
+                        val rectLeft = RectF((it.hollowModel.hollowX + it.hollowModel.width - SELECT_DRAG_RECT_WIDTH / 2).toFloat()
+                                , (it.hollowModel.hollowY + it.hollowModel.height / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
+                                , (it.hollowModel.hollowX + it.hollowModel.width + SELECT_DRAG_RECT_WIDTH / 2).toFloat()
+                                , (it.hollowModel.hollowY + it.hollowModel.height / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat())
                         canvas.drawRoundRect(rectLeft, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
 
                     }
                     HollowModel.BOTTOM -> {
-                        val rectLeft = RectF((it.hollowModel.width / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
-                                , (it.hollowModel.height - SELECT_DRAG_RECT_WIDTH / 2).toFloat()
-                                , (it.hollowModel.width / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat()
-                                , (it.hollowModel.height + SELECT_DRAG_RECT_WIDTH / 2).toFloat())
+                        val rectLeft = RectF((it.hollowModel.hollowX + it.hollowModel.width / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
+                                , (it.hollowModel.hollowY + it.hollowModel.height - SELECT_DRAG_RECT_WIDTH / 2).toFloat()
+                                , (it.hollowModel.hollowX + it.hollowModel.width / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat()
+                                , (it.hollowModel.hollowY + it.hollowModel.height + SELECT_DRAG_RECT_WIDTH / 2).toFloat())
                         canvas.drawRoundRect(rectLeft, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
                     }
                 }
