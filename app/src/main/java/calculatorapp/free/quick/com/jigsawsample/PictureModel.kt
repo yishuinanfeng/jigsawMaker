@@ -36,6 +36,8 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
      */
     private val mEffectPictureModel: SparseArray<SparseArray<List<PictureModel>>> = SparseArray()
 
+    private val mCanDragDirectionList = mutableListOf<Int>()
+
     var isSelected: Boolean = false
     /**
      * 是否触摸到边框
@@ -52,6 +54,26 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
         initScale = getCenterPicScale(bitmapPicture, hollowWidth, hollowHeight)
         scaleX = initScale
         scaleY = initScale
+
+    }
+
+    fun getCanDragList():List<Int>{
+        return mCanDragDirectionList
+    }
+
+    fun initCanDragDirectionList() {
+        if (mEffectPictureModel.get(HollowModel.LEFT) != null) {
+            mCanDragDirectionList.add(HollowModel.LEFT)
+        }
+        if (mEffectPictureModel.get(HollowModel.TOP) != null) {
+            mCanDragDirectionList.add(HollowModel.TOP)
+        }
+        if (mEffectPictureModel.get(HollowModel.RIGHT) != null) {
+            mCanDragDirectionList.add(HollowModel.RIGHT)
+        }
+        if (mEffectPictureModel.get(HollowModel.BOTTOM) != null) {
+            mCanDragDirectionList.add(HollowModel.BOTTOM)
+        }
     }
 
     fun refreshStateWhenChangePic() {

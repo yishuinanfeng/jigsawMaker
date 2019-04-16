@@ -24,7 +24,8 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
         private const val GAP_MAX = 10
         private const val ROUND_RADIUS_MAX = 10
         private const val PICTURE_ANIMATION_DELAY = 100L
-
+        private const val SELECT_DRAG_RECT_LENGTH = 150
+        private const val SELECT_DRAG_RECT_WIDTH = 20
     }
 
     private var mPictureModelList = mutableListOf<PictureModel>()
@@ -131,7 +132,7 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
         canvas?.let { canvas ->
             mPictureModelList.forEach {
 
-//                if (it.isSelected && !changePicMode) {
+                //                if (it.isSelected && !changePicMode) {
 //                    Log.d("JigsawView", "setPictureXToHollowCenter: ${it.xToHollowCenter}")
 //                    Log.d("JigsawView", "setPictureYToHollowCenter: ${it.yToHollowCenter}")
 //                    return@forEach
@@ -190,6 +191,42 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
 
                     if (it.isSelected) {
                         canvas.drawRoundRect(rect, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
+
+                        //todo 根据PictureModel的mCanDragDirectionList画出对应的可拖拽矩形标志
+                        val canDragList = it.getCanDragList()
+                        canDragList.forEach { direction ->
+                            when (direction) {
+                                HollowModel.LEFT -> {
+                                    val rectLeft = RectF((-SELECT_DRAG_RECT_WIDTH / 2).toFloat()
+                                            , (it.hollowModel.height / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
+                                            , (SELECT_DRAG_RECT_WIDTH / 2).toFloat()
+                                            , (it.hollowModel.height / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat())
+                                    canvas.drawRoundRect(rectLeft, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
+                                }
+                                HollowModel.TOP -> {
+                                    val rectLeft = RectF((it.hollowModel.width / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
+                                            , (-SELECT_DRAG_RECT_WIDTH / 2).toFloat()
+                                            , (it.hollowModel.width / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat()
+                                            , (SELECT_DRAG_RECT_WIDTH / 2).toFloat())
+                                    canvas.drawRoundRect(rectLeft, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
+                                }
+                                HollowModel.RIGHT -> {
+                                    val rectLeft = RectF((it.hollowModel.width - SELECT_DRAG_RECT_WIDTH / 2).toFloat()
+                                            , (it.hollowModel.height / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
+                                            , (it.hollowModel.width + SELECT_DRAG_RECT_WIDTH / 2).toFloat()
+                                            , (it.hollowModel.height / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat())
+                                    canvas.drawRoundRect(rectLeft, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
+
+                                }
+                                HollowModel.BOTTOM -> {
+                                    val rectLeft = RectF((it.hollowModel.width / 2 - SELECT_DRAG_RECT_LENGTH / 2).toFloat()
+                                            , (it.hollowModel.height-SELECT_DRAG_RECT_WIDTH / 2).toFloat()
+                                            , (it.hollowModel.width / 2 + SELECT_DRAG_RECT_LENGTH / 2).toFloat()
+                                            , (it.hollowModel.height + SELECT_DRAG_RECT_WIDTH / 2).toFloat())
+                                    canvas.drawRoundRect(rectLeft, hollowRoundRadius, hollowRoundRadius, mHollowSelectPaint)
+                                }
+                            }
+                        }
                     }
 
                     mMatrix.reset()

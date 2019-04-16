@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Path
 import android.graphics.Point
-import android.support.annotation.MainThread
 import android.support.annotation.RawRes
 import android.util.SparseArray
 import org.json.JSONObject
@@ -67,7 +66,7 @@ class PictureModelFactory {
                 //当前的PictureModel
                 val currentPictureModel = pictureList[i]
 
-                val effectHollow = hollowLocationStr?.split(" ")
+                val effectHollowArray = hollowLocationStr?.split(" ")
 
                 val picListLeftRight = mutableListOf<PictureModel>()
                 val picListLeftLeft = mutableListOf<PictureModel>()
@@ -78,7 +77,7 @@ class PictureModelFactory {
                 val picListBottomTop = mutableListOf<PictureModel>()
                 val picListBottomBottom = mutableListOf<PictureModel>()
 
-                effectHollow?.forEach { effect ->
+                effectHollowArray?.forEach { effect ->
                     val effectFactor = effect.split(",")
                     //当前Hollow拖动的边
                     val currentDirection = effectFactor[0].toInt()
@@ -153,7 +152,9 @@ class PictureModelFactory {
                 if (picListLeftRight.size > 0) {
                     leftMap.put(HollowModel.RIGHT, picListLeftRight)
                 }
-                currentPictureModel.addEffectPictureModel(leftMap, HollowModel.LEFT)
+                if (leftMap.size() > 0) {
+                    currentPictureModel.addEffectPictureModel(leftMap, HollowModel.LEFT)
+                }
 
                 if (picListTopTop.size > 0) {
                     topMap.put(HollowModel.TOP, picListTopTop)
@@ -161,7 +162,9 @@ class PictureModelFactory {
                 if (picListTopBottom.size > 0) {
                     topMap.put(HollowModel.BOTTOM, picListTopBottom)
                 }
-                currentPictureModel.addEffectPictureModel(topMap, HollowModel.TOP)
+                if (topMap.size() > 0) {
+                    currentPictureModel.addEffectPictureModel(topMap, HollowModel.TOP)
+                }
 
 
                 if (picListRightLeft.size > 0) {
@@ -170,7 +173,10 @@ class PictureModelFactory {
                 if (picListRightRight.size > 0) {
                     rightMap.put(HollowModel.RIGHT, picListRightRight)
                 }
-                currentPictureModel.addEffectPictureModel(rightMap, HollowModel.RIGHT)
+
+                if (rightMap.size() > 0) {
+                    currentPictureModel.addEffectPictureModel(rightMap, HollowModel.RIGHT)
+                }
 
                 if (picListBottomTop.size > 0) {
                     bottomMap.put(HollowModel.TOP, picListBottomTop)
@@ -178,7 +184,12 @@ class PictureModelFactory {
                 if (picListBottomBottom.size > 0) {
                     bottomMap.put(HollowModel.BOTTOM, picListBottomBottom)
                 }
-                currentPictureModel.addEffectPictureModel(bottomMap, HollowModel.BOTTOM)
+
+                if (bottomMap.size() > 0) {
+                    currentPictureModel.addEffectPictureModel(bottomMap, HollowModel.BOTTOM)
+                }
+
+                currentPictureModel.initCanDragDirectionList()
             }
         }
     }
@@ -284,11 +295,11 @@ class PictureModelFactory {
         return arrayOf(left, top, right, bottom)
     }
 
-    private fun getPointsHollowForCircle(circelCenterX: Float, circelCenterY: Float, radius: Float): Array<Int> {
-        val left: Int = (circelCenterX - radius).toInt()
-        val top: Int = (circelCenterY - radius).toInt()
-        val right: Int = (circelCenterX + radius).toInt()
-        val bottom: Int = (circelCenterY + radius).toInt()
+    private fun getPointsHollowForCircle(circleCenterX: Float, circleCenterY: Float, radius: Float): Array<Int> {
+        val left: Int = (circleCenterX - radius).toInt()
+        val top: Int = (circleCenterY - radius).toInt()
+        val right: Int = (circleCenterX + radius).toInt()
+        val bottom: Int = (circleCenterY + radius).toInt()
 
         return arrayOf(left, top, right, bottom)
     }
