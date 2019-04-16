@@ -89,16 +89,16 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
 
 
     fun setGap(gap: Float) {
-        val differGap = gap  - lastPicGap
+        val differGap = gap - lastPicGap
         mPictureModelList.forEach {
             val hollow = it.hollowModel
             hollow.hollowX = hollow.hollowX + differGap * GAP_MAX
             hollow.hollowY = hollow.hollowY + differGap * GAP_MAX
-            hollow.width = hollow.width - differGap * GAP_MAX
-            hollow.height = hollow.height - differGap * GAP_MAX
+            hollow.width = hollow.width - differGap * GAP_MAX * 2
+            hollow.height = hollow.height - differGap * GAP_MAX * 2
 
             if (it.isSelected)
-            Log.d(TAG,"hollow hollowX:${hollow.hollowX}, hollowY:${hollow.hollowY},hollow.width:${hollow.width},hollow.height:${hollow.height}")
+                Log.d(TAG, "hollow hollowX:${hollow.hollowX}, hollowY:${hollow.hollowY},hollow.width:${hollow.width},hollow.height:${hollow.height}")
         }
         lastPicGap = gap
         invalidate()
@@ -296,7 +296,7 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
     private fun getPathScale(): Float {
         return 1 - lastPicGap * 0.2f
     }
-    
+
     fun overTurnHorizontal() {
         mTouchPictureModel?.overTurnHorizontal()
         invalidate()
