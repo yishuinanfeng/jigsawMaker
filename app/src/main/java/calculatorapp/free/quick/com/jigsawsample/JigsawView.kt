@@ -206,9 +206,9 @@ class JigsawView(context: Context, heightWidthRatio: Float) : View(context) {
                     //不规则图形，不可以拖动边框并联动其他图形
                     if (!it.isSelected || !changePicMode) {
                         val scalePathGap = getPathScale()
-                        canvas.scale(scalePathGap, scalePathGap, (hollowX + hollowWidth / 2), (hollowY + hollowHeight / 2))
+                        canvas.scale(scalePathGap, scalePathGap, it.hollowModel.centerPoint!!.x.toFloat(), it.hollowModel.centerPoint.y.toFloat())
                         canvas.clipPath(hollowPath)
-                        canvas.scale(1 / scalePathGap, 1 / scalePathGap, (hollowX + hollowWidth / 2).toFloat(), (hollowY + hollowHeight / 2).toFloat())
+                        canvas.scale(1 / scalePathGap, 1 / scalePathGap, it.hollowModel.centerPoint.x.toFloat(), it.hollowModel.centerPoint.y.toFloat())
                         //Path使用绝对值点的话，本行应该移动到canvas.clip后面
                         canvas.translate(hollowX.toFloat(), hollowY.toFloat())
 

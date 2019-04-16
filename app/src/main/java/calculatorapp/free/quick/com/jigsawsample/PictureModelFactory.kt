@@ -211,7 +211,7 @@ class PictureModelFactory {
                 //通过hollowLocationStr求出外接矩形，将外接矩形数据写入HollowModel
                 val pointHollowArray = getPointsHollowForCircle(circleCenterX, circleCenterY, radius)
                 val hollow = HollowModel(pointHollowArray[0], pointHollowArray[1], pointHollowArray[2] - pointHollowArray[0]
-                        , pointHollowArray[3] - pointHollowArray[1], hollowPath)
+                        , pointHollowArray[3] - pointHollowArray[1], hollowPath, Point(circleCenterX.toInt(), circleCenterY.toInt()))
                 hollowList.add(hollow)
             }
         } else {
@@ -253,8 +253,9 @@ class PictureModelFactory {
                         HollowModel(pointHollowArray[0], pointHollowArray[1], pointHollowArray[2] - pointHollowArray[0]
                                 , pointHollowArray[3] - pointHollowArray[1])
                     } else {
+                        val centerPoint = getCenterPoint(hollowPointArray)
                         HollowModel(pointHollowArray[0], pointHollowArray[1], pointHollowArray[2] - pointHollowArray[0]
-                                , pointHollowArray[3] - pointHollowArray[1], hollowPath)
+                                , pointHollowArray[3] - pointHollowArray[1], hollowPath, centerPoint)
                     }
 
                     hollowList.add(hollow)
@@ -264,6 +265,21 @@ class PictureModelFactory {
 
         return hollowList
     }
+
+    private fun getCenterPoint(mPoints: List<Point>): Point {
+        val size = mPoints.size
+        var accumulateX = 0
+        var accumulateY = 0
+        mPoints.forEach {
+            accumulateX += it.x
+            accumulateY += it.y
+        }
+
+        val centerX: Int = accumulateX / size
+        val centerY: Int = accumulateY / size
+        return Point(centerX, centerY)
+    }
+
 
     /**
      * 拿到各个顶点对应的图形的外接矩形的坐标点

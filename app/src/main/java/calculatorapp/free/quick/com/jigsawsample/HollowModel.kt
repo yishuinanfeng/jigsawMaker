@@ -1,6 +1,7 @@
 package calculatorapp.free.quick.com.jigsawsample
 
 import android.graphics.Path
+import android.graphics.Point
 import android.support.annotation.IntDef
 
 /**
@@ -9,7 +10,7 @@ import android.support.annotation.IntDef
  * 功能描述：
  * @param path:用于canvas进行clip的路径
  */
-data class HollowModel(var hollowX: Float,var hollowY: Float,var initWidth: Float,var initHeight: Float,val path:Path? = null) {
+data class HollowModel(var hollowX: Float,var hollowY: Float,var initWidth: Float,var initHeight: Float,val path:Path? = null,val centerPoint:Point? = null) {
     var width:Float = initWidth
     var height:Float = initHeight
 
