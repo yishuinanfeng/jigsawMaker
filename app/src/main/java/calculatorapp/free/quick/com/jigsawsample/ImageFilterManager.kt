@@ -29,11 +29,12 @@ class ImageFilterManager(context: Context, filterModelList: List<FilterModel>) {
             gpuImage.setImage(model.getBitmap())
             isNewGpuImage = true
         }
+        gpuImage.setImage(model.getBitmap())
         val filter = GPUImageLookupFilter()
         filter.bitmap = filterBitmap
-        val filterGroup =GPUImageFilterGroup()
-        filterGroup.addFilter(filter)
-        gpuImage.setFilter(filterGroup)
+//        val filterGroup =GPUImageFilterGroup()
+//        filterGroup.addFilter(filter)
+        gpuImage.setFilter(filter)
         val resultBitmap = gpuImage.bitmapWithFilterApplied
         model.setBitmapWithFilter(resultBitmap)
 
