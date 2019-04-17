@@ -14,7 +14,8 @@ import android.view.View
  * 作者：yanyinan
  * 功能描述：代表一张图片的模型。xToHollowCenter，yToHollowCenter为图片相对边框中点的偏移
  */
-data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel, var xToHollowCenter: Int = 0, var yToHollowCenter: Int = 0) {
+class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel, var xToHollowCenter: Int = 0, var yToHollowCenter: Int = 0):ImageFilterManager.FilterModel {
+
 
     companion object {
         private val TAG = PictureModel::class.java.simpleName
@@ -591,6 +592,14 @@ data class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel,
 
     fun overTurnVertical() {
         overTurnVertical *= -1
-        scaleY = scaleY * overTurnVertical
+        scaleY *= overTurnVertical
+    }
+
+    override fun setBitmapWithFilter(bitmap: Bitmap) {
+        bitmapPicture = bitmap
+    }
+
+    override fun getBitmap():Bitmap {
+        return bitmapPicture
     }
 }

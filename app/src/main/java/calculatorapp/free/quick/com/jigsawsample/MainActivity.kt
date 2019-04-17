@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         //显示区的宽高
-        addJigsaw(R.raw.layout1)
+        addJigsaw(R.raw.layout2)
     }
 
     private fun addJigsaw(jsonResId: Int) {
@@ -47,6 +47,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
     }
+
 
     /**
      *
@@ -74,6 +75,7 @@ class MainActivity : AppCompatActivity() {
         val jigsawModelList = templateInfoFactory.getPictureModelList(this, bitmaList, jsonResId, lp.width)
         val isRegular = templateInfoFactory.getIsRegular(this,jsonResId)
         jigsawView = JigsawView(this,isRegular)
+        jigsawView.setFilterManager(ImageFilterManager(this,jigsawModelList))
         lp.gravity = Gravity.CENTER
         jigsawView.layoutParams = lp
         jigsawView.initPictureModelList(jigsawModelList)
@@ -135,6 +137,16 @@ class MainActivity : AppCompatActivity() {
 
         needOverTurnVertical.setOnClickListener {
             jigsawView.overTurnVertical()
+        }
+
+        filter1.setOnClickListener {
+            val bitmap = BitmapFactory.decodeResource(resources, R.drawable.film)
+            jigsawView.addFilterForOnePic(bitmap)
+        }
+
+        filter2.setOnClickListener {
+            val bitmap = BitmapFactory.decodeResource(resources, R.drawable.time)
+            jigsawView.addFilterForOnePic(bitmap)
         }
 
         makeBitmap.setOnClickListener {

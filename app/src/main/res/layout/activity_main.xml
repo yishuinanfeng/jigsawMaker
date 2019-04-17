@@ -48,13 +48,13 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content">
 
             <TextView
                 android:id="@+id/needOverTurnHorizontal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
+                android:textSize="20sp"
                 android:padding="5dp"
                 android:text="水平翻转" />
 
@@ -62,7 +62,7 @@
                 android:id="@+id/needOverTurnVertical"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
+                android:textSize="20sp"
                 android:padding="5dp"
                 android:layout_centerHorizontal="true"
                 android:text="垂直翻转"
@@ -72,13 +72,35 @@
                 android:id="@+id/makeBitmap"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
+                android:textSize="20sp"
                 android:padding="5dp"
                 android:layout_alignParentEnd="true"
                 android:text="生成图片"
                 />
 
         </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="10dp">
+            <TextView
+                android:id="@+id/filter1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="滤镜1"
+                android:textSize="20sp"/>
+
+            <TextView
+                android:id="@+id/filter2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="滤镜2"
+                android:textSize="20sp"
+                android:layout_marginLeft="20dp"/>
+
+
+        </LinearLayout>
 
 
     </LinearLayout>

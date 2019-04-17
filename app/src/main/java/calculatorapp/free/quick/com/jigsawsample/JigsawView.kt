@@ -79,6 +79,20 @@ class JigsawView(context: Context, isRegular: Boolean) : View(context) {
      */
     private var hollowRoundRadius = 10.0f
 
+    private var mFilterManager: ImageFilterManager? = null
+
+    fun setFilterManager(filterManager: ImageFilterManager) {
+        mFilterManager = filterManager
+    }
+
+    fun addFilterForOnePic(filterBitmap: Bitmap) {
+        mTouchPictureModel?.let {
+            mFilterManager?.addFilterForOnePicture(it, filterBitmap)
+        }
+
+        invalidate()
+    }
+
     fun initPictureModelList(pictureModelList: List<PictureModel>) {
         mPictureModelList.clear()
         mPictureModelList.addAll(pictureModelList)
