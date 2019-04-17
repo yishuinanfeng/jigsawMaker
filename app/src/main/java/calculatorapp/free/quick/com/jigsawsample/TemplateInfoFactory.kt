@@ -13,7 +13,7 @@ import org.json.JSONObject
  * 作者：yanyinan
  * 功能描述：
  */
-class PictureModelFactory {
+class TemplateInfoFactory {
 
     companion object {
         private const val IS_REGULAR_JSON_KEY = "isRegular"
@@ -30,8 +30,13 @@ class PictureModelFactory {
         initJsonHollowIfNeed(context, resId)
         val width = jsonHollow!!.optDouble(WIDTH_JSON_KEY)
         val height = jsonHollow!!.optDouble(HEIGHT_JSON_KEY)
-        val ratio = height/width
+        val ratio = height / width
         return ratio.toFloat()
+    }
+
+    fun getIsRegular(context: Context, @RawRes resId: Int): Boolean {
+        initJsonHollowIfNeed(context, resId)
+        return jsonHollow!!.optBoolean(IS_REGULAR_JSON_KEY)
     }
 
     /**
@@ -43,7 +48,7 @@ class PictureModelFactory {
         val isRegular = jsonHollow!!.optBoolean(IS_REGULAR_JSON_KEY)
         val width = jsonHollow!!.optDouble(WIDTH_JSON_KEY)
         val height = jsonHollow!!.optDouble(HEIGHT_JSON_KEY)
-        val ratio = height/width
+        val ratio = height / width
         val hollowList = getHollowListByJsonFile(standLength, jsonHollow!!, isRegular, ratio.toFloat())
         hollowList.forEachIndexed { index, hollowModel ->
             val pictureModel = PictureModel(bitmapList[index], hollowModel)

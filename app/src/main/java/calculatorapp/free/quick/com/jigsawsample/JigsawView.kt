@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
+import android.graphics.RectF
 
 
 /**
@@ -16,7 +17,7 @@ import android.view.ViewConfiguration
  * 注意：1.暂时不支持在xml文件中定义 2.布局不支持wrap content
  * @param heightWidthRatio 高度比宽度
  */
-class JigsawView(context: Context) : View(context) {
+class JigsawView(context: Context, isRegular: Boolean) : View(context) {
 //    private val mHeightWidthRatio: Float = heightWidthRatio
 
     companion object {
@@ -28,6 +29,7 @@ class JigsawView(context: Context) : View(context) {
         private const val SELECT_DRAG_RECT_WIDTH = 20
     }
 
+    private val mIsRegular = isRegular
     private var mPictureModelList = mutableListOf<PictureModel>()
 
     //绘制半透明（虚影）图片的画笔
@@ -126,8 +128,6 @@ class JigsawView(context: Context) : View(context) {
     override fun onDraw(canvas: Canvas?) {
         //因为不支持wrap content，所以不需要重写onMeasure
         canvas?.drawColor(Color.YELLOW)
-
-
         drawBackground(canvas)
         drawPicture(canvas)
     }
@@ -163,7 +163,7 @@ class JigsawView(context: Context) : View(context) {
                 val hollowHeight = hollowModel.height
                 val hollowPath = hollowModel.path
 
-                if (hollowPath == null) {
+                if (mIsRegular && hollowPath == null) {
                     //  val rect = RectF(hollowGap * GAP_MAX, hollowGap * GAP_MAX, (hollowWidth - hollowGap * GAP_MAX), (hollowHeight - hollowGap * GAP_MAX))
                     val rect = RectF(0f, 0f, hollowWidth, hollowHeight)
 
@@ -197,7 +197,6 @@ class JigsawView(context: Context) : View(context) {
                         }
                     }
 
-
                     mMatrix.reset()
                     canvas.restore()
 
@@ -208,16 +207,16 @@ class JigsawView(context: Context) : View(context) {
                     if (!it.isSelected || !changePicMode) {
                         val scalePathGap = getPathScale()
                         canvas.scale(scalePathGap, scalePathGap, it.hollowModel.centerPoint!!.x.toFloat(), it.hollowModel.centerPoint.y.toFloat())
-                        canvas.clipPath(hollowPath)
+                        canvas.clipPath(hollowPath!!)
                         canvas.scale(1 / scalePathGap, 1 / scalePathGap, it.hollowModel.centerPoint.x.toFloat(), it.hollowModel.centerPoint.y.toFloat())
                         //Path使用绝对值点的话，本行应该移动到canvas.clip后面
-                        canvas.translate(hollowX.toFloat(), hollowY.toFloat())
+                        canvas.translate(hollowX, hollowY)
 
                         //图片的中点位置以边框区域中点为标准。根据图片大小以及图片中心点边框区域中点的偏移距离和算出缩放前图片平移后左上角坐标
                         val pictureX = hollowWidth / 2 - bitmap.width / 2 + it.xToHollowCenter
                         val pictureY = hollowHeight / 2 - bitmap.height / 2 + it.yToHollowCenter
 
-                        mMatrix.postTranslate(pictureX.toFloat(), pictureY.toFloat())
+                        mMatrix.postTranslate(pictureX, pictureY)
                         //    scalePicWithGap(hollowWidth, it, hollowHeight)
                         mMatrix.postScale(scaleX, scaleY, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
                         mMatrix.postRotate(it.rotateDegree, (hollowWidth / 2 + it.xToHollowCenter).toFloat(), (hollowHeight / 2 + it.yToHollowCenter).toFloat())
@@ -238,13 +237,11 @@ class JigsawView(context: Context) : View(context) {
                     if (it.isSelected) {
                         canvas.save()
                         val scalePath = getPathScale()
-                        canvas.scale(scalePath, scalePath, (hollowX + hollowWidth / 2).toFloat(), (hollowY + hollowHeight / 2).toFloat())
-                        canvas.drawPath(hollowPath, mHollowSelectPaint)
+                        canvas.scale(scalePath, scalePath, it.hollowModel.centerPoint!!.x.toFloat(), it.hollowModel.centerPoint.y.toFloat())
+                        canvas.drawPath(hollowPath!!, mHollowSelectPaint)
                         canvas.restore()
-
                     }
                 }
-
             }
 
             mTouchPictureModel?.let {
@@ -257,6 +254,9 @@ class JigsawView(context: Context) : View(context) {
     }
 
     private fun drawHollowWithDragSign(it: PictureModel, canvas: Canvas) {
+        if (!mIsRegular) {
+            return
+        }
         if (it.isSelected) {
             val rect = RectF(it.hollowModel.hollowX, it.hollowModel.hollowY, it.hollowModel.hollowX + it.hollowModel.width
                     , it.hollowModel.hollowY + it.hollowModel.height)
@@ -327,7 +327,9 @@ class JigsawView(context: Context) : View(context) {
      * 绘制选中的图片的虚影
      */
     private fun drawPictureShadow(canvas: Canvas?) {
-
+        if (!changePicMode) {
+            return
+        }
         mTouchPictureModel?.let {
             if (!it.isSelected || !isNeedDrawShadow) {
                 return
@@ -587,16 +589,34 @@ class JigsawView(context: Context) : View(context) {
                 val y = event.y
                 Log.d("JigsawView", "getTouchPicModel x:$x y:$y")
                 for (picModel in mPictureModelList) {
-                    val hollowX = picModel.hollowModel.hollowX
-                    val hollowY = picModel.hollowModel.hollowY
-                    val hollowWidth = picModel.hollowModel.width
-                    val hollowHeight = picModel.hollowModel.height
 
-                    val rect = RectF(hollowX, hollowY, hollowX + hollowWidth, hollowY + hollowHeight)
-                    //点在矩形区域中
-                    if (rect.contains(x, y)) {
-                        return picModel
+                    if (mIsRegular) {
+                        val hollowX = picModel.hollowModel.hollowX
+                        val hollowY = picModel.hollowModel.hollowY
+                        val hollowWidth = picModel.hollowModel.width
+                        val hollowHeight = picModel.hollowModel.height
+
+                        val rect = RectF(hollowX, hollowY, hollowX + hollowWidth, hollowY + hollowHeight)
+                        //点在矩形区域中
+                        if (rect.contains(x, y)) {
+                            return picModel
+                        }
+                    } else {
+                        //不规则图形通过region判断区域
+                        val path = picModel.hollowModel.path
+                        val re = Region()
+                        val r = RectF()
+                        //计算控制点的边界
+                        path?.let {
+                            it.computeBounds(r, true)
+                            //设置区域路径和剪辑描述的区域
+                            re.setPath(it, Region(r.left.toInt(), r.top.toInt(), r.right.toInt(), r.bottom.toInt()))
+                            if (re.contains(x.toInt(), y.toInt())) {
+                                return picModel
+                            }
+                        }
                     }
+
                 }
             }
             2 -> {
