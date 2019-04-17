@@ -11,9 +11,17 @@ import org.json.JSONObject
 /**
  * 创建时间： 2019/4/9
  * 作者：yanyinan
- * 功能描述：
+ * 功能描述：一个模板的信息提供者
+ *
  */
-class TemplateInfoFactory {
+class TemplateInfoProvider(context: Context, @RawRes resId: Int) {
+    private val mResId = resId
+    private val jsonHollow: JSONObject
+
+    init {
+        val jsonString = readFile(context, mResId)
+        jsonHollow = JSONObject(jsonString)
+    }
 
     companion object {
         private const val IS_REGULAR_JSON_KEY = "isRegular"
@@ -24,47 +32,35 @@ class TemplateInfoFactory {
         private const val HEIGHT_JSON_KEY = "height"
     }
 
-    private var jsonHollow: JSONObject? = null
-
-    fun getJigsawHeightWidthRatio(context: Context, @RawRes resId: Int): Float {
-        initJsonHollowIfNeed(context, resId)
-        val width = jsonHollow!!.optDouble(WIDTH_JSON_KEY)
-        val height = jsonHollow!!.optDouble(HEIGHT_JSON_KEY)
+    fun getJigsawHeightWidthRatio(): Float {
+        val width = jsonHollow.optDouble(WIDTH_JSON_KEY)
+        val height = jsonHollow.optDouble(HEIGHT_JSON_KEY)
         val ratio = height / width
         return ratio.toFloat()
     }
 
-    fun getIsRegular(context: Context, @RawRes resId: Int): Boolean {
-        initJsonHollowIfNeed(context, resId)
-        return jsonHollow!!.optBoolean(IS_REGULAR_JSON_KEY)
+    fun getIsRegular(): Boolean {
+        return jsonHollow.optBoolean(IS_REGULAR_JSON_KEY)
     }
 
     /**
      * @param standLength:单位长度
      */
-    fun getPictureModelList(context: Context, bitmapList: List<Bitmap>, @RawRes resId: Int, standLength: Int): List<PictureModel> {
+    fun getPictureModelList(bitmapList: List<Bitmap>, standLength: Int): List<PictureModel> {
         val pictureList = mutableListOf<PictureModel>()
-        initJsonHollowIfNeed(context, resId)
-        val isRegular = jsonHollow!!.optBoolean(IS_REGULAR_JSON_KEY)
-        val width = jsonHollow!!.optDouble(WIDTH_JSON_KEY)
-        val height = jsonHollow!!.optDouble(HEIGHT_JSON_KEY)
+        val isRegular = jsonHollow.optBoolean(IS_REGULAR_JSON_KEY)
+        val width = jsonHollow.optDouble(WIDTH_JSON_KEY)
+        val height = jsonHollow.optDouble(HEIGHT_JSON_KEY)
         val ratio = height / width
-        val hollowList = getHollowListByJsonFile(standLength, jsonHollow!!, isRegular, ratio.toFloat())
+        val hollowList = getHollowListByJsonFile(standLength, jsonHollow, isRegular, ratio.toFloat())
         hollowList.forEachIndexed { index, hollowModel ->
             val pictureModel = PictureModel(bitmapList[index], hollowModel)
             pictureList.add(pictureModel)
         }
         if (isRegular) {
-            handleEffectPicModel(jsonHollow!!, pictureList)
+            handleEffectPicModel(jsonHollow, pictureList)
         }
         return pictureList
-    }
-
-    private fun initJsonHollowIfNeed(context: Context, resId: Int) {
-        if (jsonHollow == null) {
-            val jsonString = readFile(context, resId)
-            jsonHollow = JSONObject(jsonString)
-        }
     }
 
     private fun handleEffectPicModel(jsonObject: JSONObject, pictureList: MutableList<PictureModel>) {

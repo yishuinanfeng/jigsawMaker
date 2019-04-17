@@ -18,7 +18,7 @@ import android.widget.FrameLayout
 class MainActivity : AppCompatActivity() {
     private var isJigsawInit = false
     private lateinit var jigsawView: JigsawView
-    private val templateInfoFactory = TemplateInfoFactory()
+    private lateinit var mTemplateInfoProvider:TemplateInfoProvider
 
     companion object {
         private val TAG = MainActivity::class.java.simpleName
@@ -32,12 +32,11 @@ class MainActivity : AppCompatActivity() {
     private fun addJigsaw(jsonResId: Int) {
         val containerWidth = flContainer.width
         val containerHeight = flContainer.height
-        val heightWidthRatio = templateInfoFactory.getJigsawHeightWidthRatio(this, jsonResId)
+        val heightWidthRatio = mTemplateInfoProvider.getJigsawHeightWidthRatio()
 
         val lp = getCenterJigsawLP(containerWidth, containerHeight, heightWidthRatio)
         if (!isJigsawInit) {
-
-            initJigsaw(lp,jsonResId)
+            initJigsaw(lp, jsonResId)
             isJigsawInit = true
         }
     }
@@ -45,7 +44,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        mTemplateInfoProvider = TemplateInfoProvider(this, R.raw.layout2)
     }
 
 
@@ -59,7 +58,7 @@ class MainActivity : AppCompatActivity() {
             FrameLayout.LayoutParams(resultWidth.toInt(), height)
         } else {
             val resultHeight = width * JigsawHeightWidthRatio
-            FrameLayout.LayoutParams(width,resultHeight.toInt())
+            FrameLayout.LayoutParams(width, resultHeight.toInt())
         }
 
     }
@@ -72,10 +71,10 @@ class MainActivity : AppCompatActivity() {
         bitmaList.add(bitmap2)
         bitmaList.add(bitmap1)
         bitmaList.add(bitmap2)
-        val jigsawModelList = templateInfoFactory.getPictureModelList(this, bitmaList, jsonResId, lp.width)
-        val isRegular = templateInfoFactory.getIsRegular(this,jsonResId)
-        jigsawView = JigsawView(this,isRegular)
-        jigsawView.setFilterManager(ImageFilterManager(this,jigsawModelList))
+        val jigsawModelList = mTemplateInfoProvider.getPictureModelList( bitmaList, lp.width)
+        val isRegular = mTemplateInfoProvider.getIsRegular()
+        jigsawView = JigsawView(this, isRegular)
+        jigsawView.setFilterManager(ImageFilterManager(this, jigsawModelList))
         lp.gravity = Gravity.CENTER
         jigsawView.layoutParams = lp
         jigsawView.initPictureModelList(jigsawModelList)
