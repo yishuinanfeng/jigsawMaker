@@ -10,7 +10,7 @@ Every picture has it's own region as a frame ,we can drag one border and it will
   you can drag picture to where is out of the region frame and it will go back to the frame through a animation 
   or you also can exchange picture by a long press on one picture and drag to another picture's region frame as below::
   
-  你可以拖动图片，如果拖动到边框之外，松手图片就会通过一个动画归位：
+  你可以拖动图片，如果拖动到边框之外，松手图片就会通过一个动画归位。长按图片一小段时间，然后拖动图片到另一张图片上就可以交换图片位置。
   
    ![img](https://github.com/yishuinanfeng/jigsawMaker/blob/master/gif/%E5%B0%86%E5%9B%BE%E7%89%87%E6%BB%91%E5%87%BA%E5%8C%BA%E5%9F%9F%E6%9D%BE%E6%89%8B%E5%BC%B9%E7%B0%A7%E5%BC%8F%E5%BD%92%E4%BD%8D.gif) 
    
