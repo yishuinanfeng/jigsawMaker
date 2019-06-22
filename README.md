@@ -1,6 +1,6 @@
 # jigsawMaker
 
-it is a sample that makes several pictures together to create a new picture.
+it is a sample that makes several pictures together to create a new picture,some app call it a collage.
 Every picture has it's own region as a frame ,we can drag one border and it will effect other relevant frame  as below:
 
 这是一个将多张图片放在一个可编辑完成拼图的功能样例，每张图片有一个自己的区域边框，可以拖动其中一张图片的额区域边框的拖动条，就可以联动其他图片的额区域边框：
