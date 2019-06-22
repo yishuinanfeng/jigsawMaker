@@ -15,7 +15,7 @@ Every picture has it's own region as a frame ,we can drag one border and it will
    ![img](https://github.com/yishuinanfeng/jigsawMaker/blob/master/gif/%E5%B0%86%E5%9B%BE%E7%89%87%E6%BB%91%E5%87%BA%E5%8C%BA%E5%9F%9F%E6%9D%BE%E6%89%8B%E5%BC%B9%E7%B0%A7%E5%BC%8F%E5%BD%92%E4%BD%8D.gif) 
    
    
-  ofcourse,rotate your picture and change the dimension of the frame of picture is basic:
+  of course,rotate your picture and change the dimension of the frame of picture is basic:
   
   当然也可以旋转图片和调节图片边框的尺寸：
   
