@@ -29,4 +29,6 @@ Every picture has it's own region as a frame ,we can drag one border and it will
   
    ![img](https://github.com/yishuinanfeng/jigsawMaker/blob/master/gif/%E8%B0%83%E8%BE%B9%E6%A1%86%EF%BC%8C%E6%97%8B%E8%BD%AC%EF%BC%8C%E5%8A%A0%E6%BB%A4%E9%95%9C.gif) 
   
+  
+  If this is useful to you,do not forget star it~
 
