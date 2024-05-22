@@ -108,10 +108,10 @@ class JigsawView(context: Context, isRegular: Boolean) : View(context) {
         val differGap = gap - lastPicGap
         mPictureModelList.forEach {
             val hollow = it.hollowModel
-            hollow.hollowX = hollow.hollowX + differGap * GAP_MAX
-            hollow.hollowY = hollow.hollowY + differGap * GAP_MAX
-            hollow.width = hollow.width - differGap * GAP_MAX * 2
-            hollow.height = hollow.height - differGap * GAP_MAX * 2
+            hollow.hollowX += differGap * GAP_MAX
+            hollow.hollowY += differGap * GAP_MAX
+            hollow.width -= differGap * GAP_MAX * 2
+            hollow.height -= differGap * GAP_MAX * 2
 
             if (it.isSelected)
                 Log.d(TAG, "hollow hollowX:${hollow.hollowX}, hollowY:${hollow.hollowY},hollow.width:${hollow.width},hollow.height:${hollow.height}")
@@ -267,6 +267,9 @@ class JigsawView(context: Context, isRegular: Boolean) : View(context) {
 
     }
 
+    /**
+     * 绘制边框（带有拖拽拉手）
+     */
     private fun drawHollowWithDragSign(it: PictureModel, canvas: Canvas) {
         if (!mIsRegular) {
             return
@@ -483,8 +486,8 @@ class JigsawView(context: Context, isRegular: Boolean) : View(context) {
                                 willChangeModel = getTouchPicModel(event)
                             }
 
-                            it.xToHollowCenter = it.xToHollowCenter + dx
-                            it.yToHollowCenter = it.yToHollowCenter + dy
+                            it.xToHollowCenter += dx
+                            it.yToHollowCenter += dy
 
                             Log.d("JigsawView", "dx:$dx")
                             Log.d("JigsawView", "dy:$dy")

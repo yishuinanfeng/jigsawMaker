@@ -47,6 +47,9 @@ class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel, var 
     var isTouchHollow = false
     var rotateDegree = 0f
 
+    /**
+     * 翻转
+     */
     private var overTurnHorizontal = 1f
     private var overTurnVertical = 1f
 
@@ -188,7 +191,7 @@ class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel, var 
                     }
                     val lastWidth = model.width
                     model.width = width
-                    model.hollowX = model.hollowX + dx
+                    model.hollowX += dx
                     setScaleWithCondition((model.width.toFloat() / lastWidth.toFloat()))
 
                 }
@@ -210,7 +213,7 @@ class PictureModel(var bitmapPicture: Bitmap, val hollowModel: HollowModel, var 
                         }
                     }
                     val lastWidth = model.width
-                    model.width = model.width + dx
+                    model.width += dx
                     setScaleWithCondition((model.width.toFloat() / lastWidth.toFloat()))
                 }
 

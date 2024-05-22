@@ -10,7 +10,7 @@ import jp.co.cyberagent.android.gpuimage.filter.GPUImageLookupFilter
 /**
  * 创建时间： 2019/4/17
  * 作者：yanyinan
- * 功能描述：
+ * 功能描述：滤镜管理器
  */
 class ImageFilterManager(context: Context, filterModelList: List<FilterModel>) {
     private val mContext = context

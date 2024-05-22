@@ -66,11 +66,12 @@ class MainActivity : AppCompatActivity() {
     private fun initJigsaw(lp: FrameLayout.LayoutParams, jsonResId: Int) {
         val bitmap1 = BitmapFactory.decodeResource(resources, R.drawable.aa)
         val bitmap2 = BitmapFactory.decodeResource(resources, R.drawable.bb)
+        val bitmap3 = BitmapFactory.decodeResource(resources, R.drawable.cc)
         val bitmaList = mutableListOf<Bitmap>()
         bitmaList.add(bitmap1)
         bitmaList.add(bitmap2)
-        bitmaList.add(bitmap1)
-        bitmaList.add(bitmap2)
+        bitmaList.add(bitmap3)
+//        bitmaList.add(bitmap2)
         val jigsawModelList = mTemplateInfoProvider.getPictureModelList( bitmaList, lp.width)
         val isRegular = mTemplateInfoProvider.getIsRegular()
         jigsawView = JigsawView(this, isRegular)
@@ -180,10 +181,11 @@ class MainActivity : AppCompatActivity() {
 
         val bitmap1 = BitmapFactory.decodeResource(resources, R.drawable.aa)
         val bitmap2 = BitmapFactory.decodeResource(resources, R.drawable.bb)
+        val bitmap3 = BitmapFactory.decodeResource(resources, R.drawable.cc)
 
         val pictureModel1 = PictureModel(bitmap1, hollowModel1)
         val pictureModel2 = PictureModel(bitmap2, hollowModel2)
-        val pictureModel3 = PictureModel(bitmap1, hollowModel3)
+        val pictureModel3 = PictureModel(bitmap3, hollowModel3)
         val pictureModel4 = PictureModel(bitmap2, hollowModel4)
         val pictureModel5 = PictureModel(bitmap1, hollowModel5)
         val pictureModel6 = PictureModel(bitmap2, hollowModel6)
